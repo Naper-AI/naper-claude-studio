@@ -5,10 +5,12 @@
 //   node painel/registrar.mjs trabalho <id> --titulo "..." [--tipo video|carrossel|relatorio|legenda]
 //        [--produto "..."] [--redes "tiktok,instagram"] [--status em_fila|editando|pronto_para_aprovar|agendado|publicado]
 //        [--arquivo estudio/editados/x.mp4] [--folha estudio/editados/x.folha.png] [--nota "..."] [--quando "2026-11-20 19:00"]
-//        [--novo sim]   (ao CRIAR uma peça: falha se o id já existe, para não sobrescrever outra conversa)
+//        [--novo sim]   (status também: ajustar, aprovado)   (ao CRIAR uma peça: falha se o id já existe, para não sobrescrever outra conversa)
 //   node painel/registrar.mjs remover <id>            (tira o item da Galeria; não apaga arquivos)
 //   node painel/registrar.mjs etapa <id> <em_fila|transcrevendo|escolhendo|cortando|conferindo|pronto> ["mensagem"]
 //        [--quadro estudio/...png] [--folha estudio/...png]
+//   node painel/registrar.mjs feedback <id>           (imprime os comentários pendentes da Galeria: tempo + texto)
+//   node painel/registrar.mjs feedback-feito <id> <n|todos>   (marca comentário(s) como feito, depois de ajustar)
 //   node painel/registrar.mjs ver
 import * as E from './lib/estado.mjs';
 
@@ -45,6 +47,15 @@ try {
       folha: opcoes.folha ? E.relativo(opcoes.folha) : undefined,
     });
     console.log('trabalho ' + posicionais[0] + ': ' + posicionais[1]);
+  } else if (cmd === 'feedback') {
+    const f = E.feedback(posicionais[0]).comentarios.filter((c) => !c.feito).sort((a, b) => (a.t == null ? 1e9 : a.t) - (b.t == null ? 1e9 : b.t));
+    const mmss = (x) => String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(Math.floor(x % 60)).padStart(2, '0');
+    if (!f.length) console.log('nenhum comentário pendente em ' + posicionais[0]);
+    for (const c of f) console.log('[' + c.n + '] ' + (c.t == null ? 'geral' : mmss(c.t) + ' (' + c.t + ' s)') + (c.trecho ? ' · trecho «' + c.trecho + '»' : '') + ' · ' + c.texto);
+  } else if (cmd === 'feedback-feito') {
+    const alvo = posicionais[1] === 'todos' ? E.feedback(posicionais[0]).comentarios.filter((c) => !c.feito).map((c) => c.n) : [Number(posicionais[1])];
+    for (const n of alvo) E.feedbackMarcar(posicionais[0], n, true);
+    console.log('feito: ' + (alvo.join(', ') || 'nenhum'));
   } else if (cmd === 'ver') {
     console.log(JSON.stringify({ onboarding: E.onboarding(), trabalhos: E.trabalhos() }, null, 2));
   } else {

@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>Naper Studio · Claude + Naper</title>
+<title>Naper Shop Creator · Studio</title>
+<link rel="icon" type="image/png" href="img/naper-cabeca.png">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <header class="topo">
-  <div class="marca"><span class="ponto"></span><strong>Naper Studio</strong><span class="mais">Claude + Naper</span></div>
+  <div class="marca"><img class="wm" src="img/naper-wordmark.png" alt="Naper.ai"><span class="sc">Shop Creator</span><span class="mais">Studio</span></div>
   <nav class="abas" id="abas" hidden>
     <button data-aba="biblioteca" class="ativa">Biblioteca</button>
     <button data-aba="galeria">Galeria</button>
@@ -22,6 +23,7 @@
 <main>
   <section id="onboarding" class="area">
     <div class="cab">
+      <div class="hero-marca"><img src="img/naper-mascot.png" alt="Naper"><div><img class="wm" src="img/naper-wordmark.png" alt="Naper.ai"><span class="sc">Shop Creator <b>Studio</b></span></div></div>
       <p class="sobre">Primeira vez · o Claude faz por você</p>
       <h1>Vamos deixar o seu Claude pronto</h1>
       <p class="lead">Acompanhe aqui. O Claude marca cada item quando termina. Você só faz o que aparece em <b class="sua">Sua vez</b>.</p>
@@ -45,7 +47,7 @@
     <div class="cab">
       <p class="sobre">Galeria</p>
       <h1>O que o Claude criou</h1>
-      <p class="lead">Tudo fica na sua pasta <code id="pasta-estudio">estudio/</code>. Os vídeos não abrem sozinhos: copie o caminho ou peça ao Claude.</p>
+      <p class="lead">Tudo fica na sua pasta <code id="pasta-estudio">estudio/</code>. Clique em <b>Abrir</b> para ver o vídeo, a imagem ou o relatório aqui e comentar. Em <b>Kanban</b> você aprova com um clique.</p>
     </div>
     <div class="chips" id="chips"></div>
     <div class="grade" id="grade"></div>

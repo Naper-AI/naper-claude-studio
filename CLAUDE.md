@@ -20,8 +20,14 @@ O painel só mostra o que você registra. Use sempre (ela nunca roda isto):
   - Marque `fazendo` ao começar, `precisa_voce` quando for a vez dela, `ok` ao terminar. A nota aparece para ela (sem números da conta, sem dados pessoais).
 - Validar: `node painel/registrar.mjs validar` (só passa com todos os passos `ok` ou `pulado`).
 - **Todo trabalho** (vídeo, carrossel, legenda, relatório) vira item da Galeria: `node painel/registrar.mjs trabalho <id> --titulo "..." --tipo video --redes "tiktok,reels" --status em_fila --arquivo estudio/editados/x.mp4 --folha estudio/editados/x.folha.png --nota "..." --quando "20/11 19h"`
-  - id = `AAAA-MM-DD_produto_rede_vN` (sem espaço, sem acento). Status: `em_fila`, `editando`, `pronto_para_aprovar`, `agendado`, `publicado`. Atualize o status quando agendar ou publicar.
+  - id = `AAAA-MM-DD_produto_rede_vN` (sem espaço, sem acento). Status: `em_fila`, `editando`, `pronto_para_aprovar`, `ajustar`, `aprovado`, `agendado`, `publicado`. Atualize o status quando agendar ou publicar.
 - Etapa ao vivo ("Ver o editor"): `node painel/registrar.mjs etapa <id> <em_fila|transcrevendo|escolhendo|cortando|conferindo|pronto> "o que está fazendo"`. O kit de reedição registra sozinho `transcrevendo` (com `--trabalho <id>`), `cortando` e `conferindo` (com a folha). **Você** marca `escolhendo` enquanto monta a receita e `pronto` depois de olhar a folha de quadros.
+
+## Galeria: aprovar e dar feedback (resumo; os detalhes estão na skill `naper-studio`)
+
+- Ela abre os itens no painel (vídeo com linha do tempo, imagem, relatório em Markdown), comenta e **aprova** (status `aprovado`) ou **pede ajuste** (status `ajustar`). **Só agende ou publique item `aprovado`, ou o que ela autorizou com o "pode" na conversa.**
+- Pedido de ajuste: `node painel/registrar.mjs feedback <id>` lista os comentários pendentes (tempo + texto). Localize cada trecho pelo tempo (receita e `progresso.json`), faça a versão seguinte (vN+1) só com cortes, registre com `--novo sim` como `pronto_para_aprovar` e marque os comentários com `node painel/registrar.mjs feedback-feito <id> <n|todos>`.
+- Funções próprias: ela cria pelo card "+ Criar minha função" da Biblioteca; ficam em `minhas-funcoes/` (`<slug>.json` + `<slug>.md`). Siga a seção **Funções próprias** da skill para criar e para rodar ("Naper Studio · Minha função ...").
 
 ## Onboarding (o fluxo inicial)
 
@@ -48,6 +54,7 @@ Se ela tiver pressa, o mínimo para validar é: `ferramentas`, `naper`, `teste_n
 ## Pastas
 
 - `estudio/brutos/` (só vídeo cru que ela gravou), `estudio/campeoes/` (vídeos já postados que mais venderam, para a Função 3), `estudio/editados/` (o que você montou: `AAAA-MM-DD_produto_rede_vN.mp4`), `estudio/publicados/` (o que já saiu). `estudio/trabalhos.json` e `estudio/trabalhos/<id>/progresso.json` = Galeria e editor do painel.
+- `minhas-funcoes/` (as funções que ela criou na Biblioteca: `<slug>.json` + `<slug>.md`).
 - `marca/minha-marca.md` (a marca dela), `relatorios/` (análises), `estado/` (onboarding e painel).
 - `kit-reedicao/` (leia `kit-reedicao/CLAUDE.md` antes de editar vídeo).
 - Tudo isso é **dela e fica só no computador dela** (está no `.gitignore`). Nunca proponha subir para o GitHub.

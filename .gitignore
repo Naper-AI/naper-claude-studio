@@ -12,6 +12,9 @@ estudio/**
 !estudio/editados/.gitkeep
 !estudio/publicados/.gitkeep
 !estudio/campeoes/.gitkeep
+minhas-funcoes/*
+!minhas-funcoes/.gitkeep
+!minhas-funcoes/EXEMPLO.md
 kit-reedicao/receitas/*
 !kit-reedicao/receitas/exemplo.json
 .claude/settings.local.json

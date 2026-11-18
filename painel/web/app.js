@@ -10,7 +10,7 @@ let escolhido = '';
 const vistos = {};
 
 const ROT_PASSO = { falta: 'Na fila', fazendo: 'O Claude está fazendo', precisa_voce: 'Sua vez', ok: 'Pronto', pulado: 'Pulado', erro: 'Precisa de atenção' };
-const ROT_STATUS = { em_fila: 'Em fila', editando: 'Editando', pronto_para_aprovar: 'Pronto para aprovar', agendado: 'Agendado', publicado: 'Publicado' };
+const ROT_STATUS = { em_fila: 'Em fila', editando: 'Editando', pronto_para_aprovar: 'Pronto para aprovar', ajustar: 'Ajustar', aprovado: 'Aprovado', agendado: 'Agendado', publicado: 'Publicado' };
 const ETAPAS = [
   ['transcrevendo', 'Transcrevendo'], ['escolhendo', 'Escolhendo trechos'], ['cortando', 'Cortando'], ['conferindo', 'Conferindo'], ['pronto', 'Pronto'],
 ];
@@ -130,15 +130,49 @@ function lerForm(form) {
   }
   return f;
 }
+// Funções próprias: vêm de minhas-funcoes/*.json (GET /api/funcoes) e viram cards iguais às 4 primeiras.
+let proprias = [];
+const CRIAR = {
+  id: 'criar', rotulo: '+ NOVA', titulo: 'Criar minha função',
+  desc: 'Diga o que você quer que o Claude faça e ele cria uma função nova aqui na Biblioteca, seguindo as boas práticas (só lê até o seu "pode", registra na Galeria).',
+  sai: 'Um card novo na Biblioteca, com o briefing que você precisa preencher.',
+  campos: `<div class="campo"><label>Nome da função</label><input type="text" name="nome" placeholder="ex.: Relatório de amostras da semana"></div>
+    <div class="campo"><label>O que o Claude deve fazer</label><textarea name="descricao" placeholder="ex.: todo domingo, listar as amostras que pedi e as que chegaram, e dizer qual vídeo gravar primeiro"></textarea></div>
+    <div class="campo"><label>Com que frequência (opcional)</label><input type="text" name="freq" placeholder="ex.: toda semana"></div>
+    <div class="campo"><span class="rot">Redes ou lojas (opcional)</span>` + marcas('redes', REDES, []) + `</div>
+    <div class="campo"><label>O que eu preencho no briefing (opcional)</label><input type="text" name="briefing" placeholder="ex.: o produto e o período"></div>`,
+  pedido: (f) => [
+    'Naper Studio · Criar uma função nova na minha Biblioteca: ' + (f.nome || '(dê um nome)') + ' — ' + (f.descricao || '(descreva o que quer)') + '.',
+    f.freq ? 'Frequência: ' + f.freq + '.' : '', f.redes.length ? 'Redes e lojas: ' + f.redes.map((r) => (REDES.find((x) => x[0] === r) || [0, r])[1]).join(', ') + '.' : '',
+    f.briefing ? 'No briefing eu preencho: ' + f.briefing + '.' : '',
+    'Siga as boas práticas da skill naper-studio (seção Funções próprias).',
+  ],
+};
+function funcaoPropria(p) {
+  const campos = (p.campos || []).map((c) => c.tipo === 'escolha'
+    ? '<div class="campo"><label>' + esc(c.rotulo) + '</label><select name="' + esc(c.id) + '">' + (c.opcoes || []).map((o) => '<option>' + esc(o) + '</option>').join('') + '</select></div>'
+    : c.tipo === 'marcar'
+      ? '<div class="campo"><span class="rot">' + esc(c.rotulo) + '</span>' + marcas(c.id, (c.opcoes || []).map((o) => [o, o]), []) + '</div>'
+      : '<div class="campo"><label>' + esc(c.rotulo) + '</label><input type="text" name="' + esc(c.id) + '" placeholder="' + esc(c.exemplo ? 'ex.: ' + c.exemplo : '') + '"></div>').join('');
+  return {
+    id: p.slug, propria: true, rotulo: 'MINHA FUNÇÃO', titulo: p.titulo, desc: p.descricao, sai: 'O passo a passo está em minhas-funcoes/' + p.slug + '.md.', campos,
+    pedido: (f) => {
+      let m = p.pedido;
+      for (const c of p.campos) m = m.split('{' + c.id + '}').join(Array.isArray(f[c.id]) ? f[c.id].join(', ') : (f[c.id] || ''));
+      return ['Naper Studio · Minha função ' + p.titulo + ' (siga minhas-funcoes/' + p.slug + '.md): ' + m];
+    },
+  };
+}
 function renderBiblioteca() {
-  $('#funcoes').innerHTML = FUNCOES.map((fn) => `<form class="funcao" data-id="${fn.id}" onsubmit="return false">
-    <span class="num">FUNÇÃO ${fn.num}</span><h2>${fn.titulo}</h2><p class="desc">${fn.desc}</p><p class="sai">${fn.sai}</p>
+  const todas = [...FUNCOES, ...proprias.map(funcaoPropria), CRIAR];
+  $('#funcoes').innerHTML = todas.map((fn) => `<form class="funcao${fn.propria ? ' propria' : ''}" data-id="${esc(fn.id)}" onsubmit="return false">
+    <span class="num">${fn.rotulo || 'FUNÇÃO ' + fn.num}</span>${fn.propria ? '<button type="button" class="btn sec peq editar" data-editar="' + esc(fn.id) + '">Editar</button>' : ''}<h2>${fn.titulo}</h2><p class="desc">${fn.desc}</p><p class="sai">${fn.sai}</p>
     <div class="campos">${fn.campos}</div>
     <details class="ver-pedido"><summary>Ver o pedido</summary><pre></pre></details>
     <div class="botoes"><button class="btn pri" data-acao="copiar">Copiar pedido</button><button class="btn sec" data-acao="mandar">Mandar para o Claude</button></div>
   </form>`).join('');
   document.querySelectorAll('.funcao').forEach((form) => {
-    const fn = FUNCOES.find((x) => x.id === form.dataset.id);
+    const fn = todas.find((x) => x.id === form.dataset.id);
     const texto = () => fn.pedido(lerForm(form)).filter(Boolean).join('\n');
     const atualiza = () => (form.querySelector('pre').textContent = texto());
     form.addEventListener('input', atualiza);
@@ -176,21 +210,38 @@ function avisar(t) {
 }
 
 // ---------- Galeria ----------
+let visao = 'grade';
+function cardHtml(t, kanban) {
+  const pend = t.feedbackPendentes ? '<span class="rede pend" title="Comentários de feedback ainda sem ajuste">' + t.feedbackPendentes + (t.feedbackPendentes === 1 ? ' ajuste pendente' : ' ajustes pendentes') + '</span>' : '';
+  const miniatura = t.folha ? '<img alt="Folha de quadros" src="' + img(t.folha) + '">'
+    : tipoArq(t.arquivo) === 'imagem' && abrivel(t) ? '<img alt="" src="' + midiaUrl(t.arquivo) + '">'
+      : '<span>' + (t.tipo === 'relatorio' ? 'relatório' : 'sem miniatura ainda') + '</span>';
+  const acoes = [
+    t.status === 'pronto_para_aprovar' ? '<button class="btn pri peq" data-ap="aprovar" data-id="' + esc(t.id) + '">Aprovar</button><button class="btn sec peq" data-ap="ajuste" data-id="' + esc(t.id) + '">Pedir ajuste</button>' : '',
+    t.status === 'aprovado' ? '<button class="btn sec peq" data-pedido-aprovado="' + esc(t.id) + '">Pedido para agendar</button>' : '',
+    abrivel(t) ? '<button class="btn ' + (t.status === 'pronto_para_aprovar' ? 'sec' : 'pri') + ' peq" data-abrir="' + esc(t.id) + '">Abrir</button>' : '',
+    t.arquivo && !kanban ? '<button class="btn sec peq" data-cam="' + esc(t.arquivo) + '">Copiar caminho</button>' : '',
+    '<button class="btn sec peq" data-ver="' + esc(t.id) + '">Ver o editor</button>',
+  ].join('');
+  return `<article class="item${kanban ? ' kb' : ''}" data-id="${esc(t.id)}" data-status="${esc(t.status)}"${kanban && MOVER[t.status] ? ' draggable="true"' : ''}>
+    ${kanban ? '' : '<div class="mini">' + miniatura + '</div>'}
+    <div class="corpo"><h4>${esc(t.titulo)}</h4>
+      <div class="meta">${kanban ? '' : '<span class="st ' + t.status + '">' + (ROT_STATUS[t.status] || t.status) + '</span>'}${(t.redes || []).map((r) => '<span class="rede">' + esc(r) + '</span>').join('')}${pend}${t.duracao ? '<span class="rede">' + t.duracao + ' s</span>' : ''}${t.quando ? '<span class="rede">' + esc(t.quando) + '</span>' : ''}</div>
+      ${t.nota && !kanban ? '<div class="mudo" style="font-size:13px">' + esc(t.nota) + '</div>' : ''}
+      ${t.arquivo && !kanban ? '<div class="cam">' + esc(t.arquivo) + '</div>' : ''}
+      <div class="rodape">${kanban ? '' : '<span>' + new Date(t.atualizadoEm || t.criadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + '</span>'}<span class="acoes-card">${acoes}</span></div>
+    </div></article>`;
+}
 function renderGaleria(lista) {
   const cont = { todos: lista.length };
   for (const t of lista) cont[t.status] = (cont[t.status] || 0) + 1;
-  $('#chips').innerHTML = [['todos', 'Todos'], ...Object.entries(ROT_STATUS)].map(([k, r]) =>
-    '<button data-f="' + k + '" class="' + (filtro === k ? 'ativa' : '') + '">' + r + ' · ' + (cont[k] || 0) + '</button>').join('');
+  const alterna = '<span class="visoes"><button data-visao="grade" class="' + (visao === 'grade' ? 'ativa' : '') + '">Grade</button><button data-visao="kanban" class="' + (visao === 'kanban' ? 'ativa' : '') + '">Kanban</button></span>';
+  $('#chips').innerHTML = alterna + (visao === 'kanban' ? '' : [['todos', 'Todos'], ...Object.entries(ROT_STATUS)].map(([k, r]) =>
+    '<button data-f="' + k + '" class="' + (filtro === k ? 'ativa' : '') + '">' + r + ' · ' + (cont[k] || 0) + '</button>').join(''));
+  if (visao === 'kanban') return renderKanban(lista);
+  $('#grade').className = 'grade';
   const vis = lista.filter((t) => filtro === 'todos' || t.status === filtro);
-  $('#grade').innerHTML = vis.length ? vis.map((t) => `<article class="item">
-    <div class="mini">${t.folha ? '<img alt="Folha de quadros" src="' + img(t.folha) + '">' : '<span>' + (t.tipo === 'relatorio' ? 'relatório' : 'sem miniatura ainda') + '</span>'}</div>
-    <div class="corpo"><h4>${esc(t.titulo)}</h4>
-      <div class="meta"><span class="st ${t.status}">${ROT_STATUS[t.status] || t.status}</span>${(t.redes || []).map((r) => '<span class="rede">' + esc(r) + '</span>').join('')}${t.duracao ? '<span class="rede">' + t.duracao + ' s</span>' : ''}${t.quando ? '<span class="rede">' + esc(t.quando) + '</span>' : ''}</div>
-      ${t.nota ? '<div class="mudo" style="font-size:13px">' + esc(t.nota) + '</div>' : ''}
-      ${t.arquivo ? '<div class="cam">' + esc(t.arquivo) + '</div>' : ''}
-      <div class="rodape"><span>${new Date(t.atualizadoEm || t.criadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>
-      <span>${t.arquivo ? '<button class="btn sec peq" data-cam="' + esc(t.arquivo) + '">Copiar caminho</button> ' : ''}<button class="btn sec peq" data-ver="${esc(t.id)}">Ver o editor</button></span></div>
-    </div></article>`).join('') : '<div class="vazio">Nada aqui ainda. Peça na Biblioteca e o Claude registra cada peça nesta Galeria.</div>';
+  $('#grade').innerHTML = vis.length ? vis.map((t) => cardHtml(t, false)).join('') : '<div class="vazio">Nada aqui ainda. Peça na Biblioteca e o Claude registra cada peça nesta Galeria.</div>';
 }
 
 // ---------- Editor ----------
@@ -286,6 +337,12 @@ async function ciclo() {
     if (!ob.validado && abaAtual !== 'onboarding') mostrar('onboarding');
     if (ob.validado && vistos.validado === false) mostrar('biblioteca');
     vistos.validado = ob.validado;
+    const rf = await fetch('/api/funcoes', { cache: 'no-store' }).then((x) => x.json()).catch(() => null);
+    if (rf && JSON.stringify(rf.funcoes) !== vistos.fn) {
+      vistos.fn = JSON.stringify(rf.funcoes);
+      proprias = rf.funcoes;
+      renderBiblioteca();
+    }
     const k2 = JSON.stringify(estado.trabalhos);
     if (vistos.tr !== k2) {
       vistos.tr = k2;
@@ -310,3 +367,390 @@ ciclo().then(() => {
   if (estado && estado.onboarding.validado && abaAtual === 'onboarding' && inicial !== 'onboarding') mostrar('biblioteca');
 });
 setInterval(ciclo, 2000);
+
+// ---------- Abrir: vídeo (linha do tempo), imagem, relatório em Markdown, texto ----------
+function tipoArq(rel) {
+  const e = (String(rel || '').match(/\.([a-z0-9]+)$/i) || [])[1];
+  const x = String(e || '').toLowerCase();
+  if (['mp4', 'm4v', 'mov', 'webm'].includes(x)) return 'video';
+  if (['png', 'jpg', 'jpeg', 'webp'].includes(x)) return 'imagem';
+  if (x === 'md') return 'md';
+  if (['txt', 'json'].includes(x)) return 'texto';
+  return '';
+}
+const abrivel = (t) => !!t.arquivo && !!tipoArq(t.arquivo) && /^(estudio|relatorios)\//.test(t.arquivo);
+const midiaUrl = (rel) => '/midia/' + String(rel).split('/').map(encodeURIComponent).join('/');
+const mmss = (s) => {
+  s = Math.max(0, Math.round(Number(s) || 0));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+};
+
+// Conversor de Markdown simples (títulos, listas, negrito, itálico, tabelas, links, código, citação). Escapa todo HTML.
+function mdInline(t) {
+  const cod = [];
+  t = t.replace(/`([^`]+)`/g, (_, c) => {
+    cod.push('<code>' + esc(c) + '</code>');
+    return '' + (cod.length - 1) + '';
+  });
+  t = esc(t);
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/__([^_]+)__/g, '<b>$1</b>');
+  t = t.replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>').replace(/(^|[\s(])_([^_\s][^_]*)_(?=[\s).,;:!?]|$)/g, '$1<i>$2</i>');
+  t = t.replace(/~~([^~]+)~~/g, '<s>$1</s>');
+  return t.replace(/(\d+)/g, (_, i) => cod[Number(i)]);
+}
+function mdParaHtml(src) {
+  const L = String(src).replace(/\r/g, '').split('\n');
+  const out = [];
+  let i = 0;
+  const celulas = (l) => l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+  const ehTabela = (k) => k + 1 < L.length && /\|/.test(L[k]) && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(L[k + 1]);
+  const item = (l) => /^(\s*)([-*+]|\d+[.)])\s+(.*)$/.exec(l);
+  while (i < L.length) {
+    const l = L[i];
+    if (!l.trim()) { i++; continue; }
+    if (/^\s*```/.test(l)) {
+      const cod = [];
+      i++;
+      while (i < L.length && !/^\s*```/.test(L[i])) cod.push(L[i++]);
+      i++;
+      out.push('<pre class="md-cod"><code>' + esc(cod.join('\n')) + '</code></pre>');
+      continue;
+    }
+    let m = /^(#{1,6})\s+(.*)$/.exec(l);
+    if (m) { out.push('<h' + m[1].length + '>' + mdInline(m[2].replace(/\s+#+\s*$/, '')) + '</h' + m[1].length + '>'); i++; continue; }
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)) { out.push('<hr>'); i++; continue; }
+    if (/^\s*>/.test(l)) {
+      const q = [];
+      while (i < L.length && /^\s*>/.test(L[i])) q.push(L[i++].replace(/^\s*>\s?/, ''));
+      out.push('<blockquote>' + mdParaHtml(q.join('\n')) + '</blockquote>');
+      continue;
+    }
+    if (ehTabela(i)) {
+      const cab = celulas(l);
+      i += 2;
+      const linhas = [];
+      while (i < L.length && L[i].trim() && /\|/.test(L[i])) linhas.push(celulas(L[i++]));
+      out.push('<div class="md-tab"><table><thead><tr>' + cab.map((c) => '<th>' + mdInline(c) + '</th>').join('') + '</tr></thead><tbody>' +
+        linhas.map((r) => '<tr>' + cab.map((_, k) => '<td>' + mdInline(r[k] || '') + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>');
+      continue;
+    }
+    if (item(l)) {
+      const pilha = [];
+      let html = '';
+      while (i < L.length && item(L[i])) {
+        const [, ind, marca, txt] = item(L[i]);
+        const nivel = Math.floor(ind.replace(/\t/g, '  ').length / 2);
+        const tag = /\d/.test(marca) ? 'ol' : 'ul';
+        while (pilha.length > nivel + 1) html += '</li></' + pilha.pop() + '>';
+        if (pilha.length === nivel + 1 && pilha[nivel] !== tag) {
+          html += '</li></' + pilha[nivel] + '><' + tag + '>';
+          pilha[nivel] = tag;
+        } else if (pilha.length === nivel + 1) html += '</li>';
+        else while (pilha.length < nivel + 1) { html += '<' + tag + '>'; pilha.push(tag); }
+        html += '<li>' + mdInline(txt.replace(/^\[( |x|X)\]\s+/, (_, c) => (c === ' ' ? '☐ ' : '☑ ')));
+        i++;
+      }
+      while (pilha.length) html += '</li></' + pilha.pop() + '>';
+      out.push(html);
+      continue;
+    }
+    const par = [];
+    while (i < L.length && L[i].trim() && !/^(#{1,6}\s|\s*```|\s*>|\s*([-*+]|\d+[.)])\s)/.test(L[i]) && !ehTabela(i)) par.push(L[i++]);
+    if (!par.length) { par.push(L[i++]); }
+    out.push('<p>' + par.map(mdInline).join('<br>') + '</p>');
+  }
+  return out.join('\n');
+}
+
+let vid = null; // { trabalho, comentarios, tipo, trecho }
+function abrirItem(id) {
+  const t = estado.trabalhos.find((x) => x.id === id);
+  if (!t || !abrivel(t)) return;
+  const tipo = tipoArq(t.arquivo);
+  vid = { trabalho: t, comentarios: [], tipo, trecho: '' };
+  let m = $('#modal-video');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'modal-video';
+    m.className = 'modal';
+    document.body.appendChild(m);
+  }
+  m.hidden = false;
+  document.body.style.overflow = 'hidden';
+  const url = midiaUrl(t.arquivo) + '?t=' + Date.now();
+  const aprova = t.status === 'pronto_para_aprovar'
+    ? '<button class="btn pri peq" data-ap="aprovar" data-id="' + esc(t.id) + '">Aprovar</button> <button class="btn sec peq" data-ap="ajuste" data-id="' + esc(t.id) + '">Pedir ajuste</button> ' : '';
+  const painel = tipo === 'video'
+    ? `<div class="player"><video id="v-player" controls playsinline preload="metadata" src="${url}"></video>
+        <div class="linha-tempo" id="v-linha" title="Clique para ir até este ponto"><div class="lt-prog" id="v-prog"></div><div id="v-marcas"></div></div>
+        <div class="lt-tempo"><span id="v-agora">00:00</span><span id="v-total">00:00</span></div></div>`
+    : tipo === 'imagem' ? `<div class="doc doc-img"><img src="${url}" alt="${esc(t.titulo)}"></div>`
+      : `<div class="doc ${tipo === 'md' ? 'md' : 'txt'}" id="v-doc"><p class="mudo">Abrindo…</p></div>`;
+  const quando = tipo === 'video' ? 'Pause no ponto que quer mudar e escreva o que ajustar.'
+    : tipo === 'imagem' ? 'Escreva o que ajustar nesta imagem.'
+      : 'Escreva o que ajustar. Para falar de um trecho, selecione o texto antes.';
+  m.innerHTML = `<div class="modal-cx ${tipo === 'video' ? '' : 'larga'}" role="dialog" aria-label="Abrir">
+    <div class="modal-topo"><div><h3>${esc(t.titulo)}</h3><span class="cam">${esc(t.arquivo)}</span></div><div class="topo-acoes">${aprova}<button class="btn sec peq" data-fechar-video>Fechar</button></div></div>
+    <div class="modal-corpo">${painel}
+      <div class="fb">
+        <h4>Feedback</h4>
+        <p class="mudo" style="margin:0 0 8px;font-size:13px">${quando}</p>
+        <div class="trecho-sel" id="v-trecho" hidden></div>
+        <textarea id="v-texto" rows="3" placeholder="O que mudar${tipo === 'video' ? ' neste ponto' : ''}?"></textarea>
+        <div class="botoes"><button class="btn pri" id="v-comentar">${tipo === 'video' ? 'Comentar em <span id="v-ponto">00:00</span>' : 'Comentar'}</button></div>
+        <ul class="fb-lista" id="v-lista"></ul>
+        <div class="botoes"><button class="btn sec" id="v-mandar">Mandar feedback para o Claude</button></div>
+      </div>
+    </div></div>`;
+  const v = $('#v-player');
+  const atual = () => (v ? v.currentTime || 0 : 0);
+  const dur = () => (v && isFinite(v.duration) && v.duration > 0 ? v.duration : 0);
+  if (v) {
+    v.addEventListener('timeupdate', () => {
+      if (!vid || !$('#v-agora')) return;
+      $('#v-agora').textContent = mmss(atual());
+      $('#v-ponto').textContent = mmss(atual());
+      if (dur()) $('#v-prog').style.width = (100 * atual() / dur()) + '%';
+    });
+    v.addEventListener('loadedmetadata', () => {
+      if (!vid || !$('#v-total')) return;
+      $('#v-total').textContent = mmss(dur());
+      desenharMarcas();
+    });
+    $('#v-linha').onclick = (e) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      if (dur()) v.currentTime = Math.min(dur(), Math.max(0, ((e.clientX - r.left) / r.width) * dur()));
+    };
+    $('#v-texto').addEventListener('focus', () => v.pause());
+  }
+  const doc = $('#v-doc');
+  if (doc) {
+    fetch(url, { cache: 'no-store' }).then((r) => r.text()).then((txt) => {
+      if (!vid || vid.trabalho.id !== t.id) return;
+      if (tipo === 'md') doc.innerHTML = mdParaHtml(txt);
+      else {
+        let s = txt;
+        if (/\.json$/i.test(t.arquivo)) {
+          try {
+            s = JSON.stringify(JSON.parse(txt), null, 2);
+          } catch { /* mostra como veio */ }
+        }
+        doc.innerHTML = '<pre>' + esc(s) + '</pre>';
+      }
+    }).catch(() => (doc.innerHTML = '<p class="mudo">Não consegui abrir este arquivo.</p>'));
+    doc.addEventListener('mouseup', () => {
+      const s = String(window.getSelection ? window.getSelection() : '').trim();
+      if (s && s.length > 2) {
+        vid.trecho = s.slice(0, 300);
+        const el = $('#v-trecho');
+        el.hidden = false;
+        el.innerHTML = '<span>Trecho: «' + esc(vid.trecho.slice(0, 120)) + (vid.trecho.length > 120 ? '…' : '') + '»</span> <button class="btn sec peq" data-limpar-trecho>Tirar</button>';
+      }
+    });
+  }
+  $('#v-texto').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('#v-comentar').click();
+  });
+  $('#v-comentar').onclick = async () => {
+    const texto = $('#v-texto').value.trim();
+    if (!texto) return $('#v-texto').focus();
+    if (v) v.pause();
+    const corpo = { t: tipo === 'video' ? atual() : null, texto, trecho: vid.trecho || undefined };
+    const r = await fetch('/api/feedback/' + encodeURIComponent(t.id), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) }).catch(() => null);
+    if (!r || !r.ok) return avisar('Não consegui salvar o comentário.');
+    vid.comentarios = (await r.json()).comentarios;
+    vid.trecho = '';
+    $('#v-trecho').hidden = true;
+    $('#v-texto').value = '';
+    desenharFeedback();
+    ciclo();
+  };
+  $('#v-mandar').onclick = () => enviarPedido(pedidoAjuste(t), 'feedback', true);
+  fetch('/api/feedback/' + encodeURIComponent(t.id), { cache: 'no-store' }).then((r) => r.json()).then((f) => {
+    if (!vid || vid.trabalho.id !== t.id) return;
+    vid.comentarios = f.comentarios || [];
+    desenharFeedback();
+  }).catch(() => {});
+  desenharFeedback();
+}
+const pedidoAjuste = (t) => 'Naper Studio · Ajustes ' + (tipoArq(t.arquivo) === 'video' ? 'no vídeo ' : 'em ') + t.titulo + ' (' + t.arquivo + '): siga o feedback da Galeria em estudio/trabalhos/' + t.id + '/feedback.json e faça uma nova versão.';
+const pedidoAprovado = (t) => 'Naper Studio · Aprovado: ' + t.titulo + ' (' + (t.arquivo || t.id) + ') — pode agendar como combinado.';
+async function enviarPedido(texto, funcao, aviso) {
+  await copiar(texto);
+  const r = await fetch('/api/pedido', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ funcao, texto }) }).catch(() => null);
+  avisar(r && r.ok ? 'Pedido entregue. Volte ao Claude e escreva só "vai" e Enter (ou cole com Ctrl+V).' : 'Pedido copiado. No Claude (aba Code, pasta Naper-Studio), cole com Ctrl+V e aperte Enter.');
+  return !!aviso;
+}
+function fecharVideo() {
+  const m = $('#modal-video');
+  if (!m) return;
+  const v = $('#v-player');
+  if (v) {
+    v.pause();
+    v.removeAttribute('src');
+    v.load();
+  }
+  m.hidden = true;
+  m.innerHTML = '';
+  document.body.style.overflow = '';
+  vid = null;
+}
+function desenharMarcas() {
+  const v = $('#v-player');
+  const box = $('#v-marcas');
+  if (!v || !box || !vid) return;
+  const d = isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
+  box.innerHTML = d ? vid.comentarios.filter((c) => c.t != null).map((c) => '<button class="lt-marca' + (c.feito ? ' feita' : '') + '" style="left:' + Math.min(100, 100 * c.t / d) + '%" data-ir="' + c.t + '" title="' + mmss(c.t) + ' · ' + esc(c.texto) + '"></button>').join('') : '';
+}
+function desenharFeedback() {
+  if (!vid) return;
+  const lista = vid.comentarios.slice().sort((a, b) => (a.t == null ? 1e9 : a.t) - (b.t == null ? 1e9 : b.t) || a.n - b.n);
+  $('#v-lista').innerHTML = lista.length ? lista.map((c) => `<li class="${c.feito ? 'feito' : ''}">
+    ${c.t != null ? '<button class="tempo" data-ir="' + c.t + '">' + mmss(c.t) + '</button>' : '<span class="tempo geral">geral</span>'}
+    <span class="txt">${c.trecho ? '<q>' + esc(c.trecho) + '</q> ' : ''}${esc(c.texto)}</span>
+    <span class="acoes"><button class="btn sec peq" data-fb="${c.feito ? 'desfeito' : 'feito'}" data-n="${c.n}">${c.feito ? 'Reabrir' : 'Feito'}</button><button class="btn sec peq" data-fb="apagar" data-n="${c.n}">Apagar</button></span></li>`).join('')
+    : '<li class="mudo">Nenhum comentário ainda.</li>';
+  desenharMarcas();
+}
+
+// ---------- Aprovação ----------
+const MOVER = { pronto_para_aprovar: ['aprovado', 'ajustar'], aprovado: ['pronto_para_aprovar', 'ajustar'], ajustar: ['pronto_para_aprovar'] };
+async function moverStatus(id, status) {
+  const r = await fetch('/api/trabalho/' + encodeURIComponent(id) + '/status', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) }).catch(() => null);
+  if (!r || !r.ok) {
+    avisar('Não deu para mudar: ' + ((r && (await r.json().catch(() => ({}))).erro) || 'sem resposta do painel'));
+    return null;
+  }
+  await ciclo();
+  return r.json();
+}
+function mostrarPedido(titulo, texto, funcao) {
+  let m = $('#modal-pedido');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'modal-pedido';
+    m.className = 'modal';
+    document.body.appendChild(m);
+  }
+  m.hidden = false;
+  m.innerHTML = '<div class="modal-cx pedido"><div class="modal-topo"><h3>' + esc(titulo) + '</h3><button class="btn sec peq" data-fechar-pedido>Fechar</button></div><div class="modal-corpo um"><div><textarea class="pedido-txt" rows="5"></textarea><div class="botoes"><button class="btn pri" data-pedido="copiar">Copiar pedido</button> <button class="btn sec" data-pedido="mandar">Mandar para o Claude</button></div></div></div></div>';
+  const ta = m.querySelector('textarea');
+  ta.value = texto;
+  m.querySelector('[data-pedido=copiar]').onclick = async () => {
+    await copiar(ta.value);
+    avisar('Pedido copiado. No Claude (aba Code, pasta Naper-Studio), cole com Ctrl+V e aperte Enter.');
+  };
+  m.querySelector('[data-pedido=mandar]').onclick = () => enviarPedido(ta.value, funcao);
+}
+async function aprovar(id) {
+  const t = await moverStatus(id, 'aprovado');
+  if (!t) return;
+  fecharVideo();
+  mostrarPedido('Aprovado! Agora é só o Claude agendar', pedidoAprovado(t), 'aprovado');
+}
+async function pedirAjuste(id) {
+  const t = await moverStatus(id, 'ajustar');
+  if (!t) return;
+  if (abrivel(t)) {
+    fecharVideo();
+    abrirItem(id);
+    avisar('Marcado para ajustar. Comente o que mudar e clique em "Mandar feedback para o Claude".');
+  } else mostrarPedido('Pedir ajuste', pedidoAjuste(t), 'feedback');
+}
+
+// ---------- Kanban ----------
+const COLUNAS = ['em_fila', 'editando', 'pronto_para_aprovar', 'ajustar', 'aprovado', 'agendado', 'publicado'];
+function renderKanban(lista) {
+  $('#grade').className = 'kanban';
+  $('#grade').innerHTML = COLUNAS.map((c) => {
+    const itens = lista.filter((t) => t.status === c);
+    return '<section class="col" data-col="' + c + '"><h5><span class="st ' + c + '">' + ROT_STATUS[c] + '</span><em>' + itens.length + '</em></h5><div class="col-itens">' +
+      (itens.map((t) => cardHtml(t, true)).join('') || '<p class="mudo vazio-col">—</p>') + '</div></section>';
+  }).join('');
+}
+let arrastando = null;
+document.addEventListener('dragstart', (e) => {
+  const c = e.target.closest && e.target.closest('.item[data-id]');
+  if (!c) return;
+  arrastando = { id: c.dataset.id, de: c.dataset.status };
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', c.dataset.id);
+  document.querySelectorAll('.col').forEach((col) => col.classList.toggle('alvo', (MOVER[arrastando.de] || []).includes(col.dataset.col)));
+});
+document.addEventListener('dragend', () => {
+  arrastando = null;
+  document.querySelectorAll('.col').forEach((col) => col.classList.remove('alvo', 'sobre'));
+});
+document.addEventListener('dragover', (e) => {
+  const col = e.target.closest && e.target.closest('.col');
+  if (col && arrastando && (MOVER[arrastando.de] || []).includes(col.dataset.col)) {
+    e.preventDefault();
+    col.classList.add('sobre');
+  }
+});
+document.addEventListener('dragleave', (e) => {
+  const col = e.target.closest && e.target.closest('.col');
+  if (col && !col.contains(e.relatedTarget)) col.classList.remove('sobre');
+});
+document.addEventListener('drop', (e) => {
+  const col = e.target.closest && e.target.closest('.col');
+  if (!col || !arrastando || !(MOVER[arrastando.de] || []).includes(col.dataset.col)) return;
+  e.preventDefault();
+  const { id } = arrastando;
+  if (col.dataset.col === 'aprovado') aprovar(id);
+  else if (col.dataset.col === 'ajustar') pedirAjuste(id);
+  else moverStatus(id, col.dataset.col);
+});
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (e.target.id === 'modal-video' || (b && b.hasAttribute('data-fechar-video'))) return fecharVideo();
+  if (e.target.id === 'modal-pedido' || (b && b.hasAttribute('data-fechar-pedido'))) {
+    $('#modal-pedido').hidden = true;
+    return;
+  }
+  if (!b) return;
+  if (b.dataset.abrir) abrirItem(b.dataset.abrir);
+  if (b.dataset.visao) {
+    visao = b.dataset.visao;
+    renderGaleria(estado.trabalhos);
+  }
+  if (b.dataset.ap === 'aprovar') aprovar(b.dataset.id);
+  if (b.dataset.ap === 'ajuste') pedirAjuste(b.dataset.id);
+  if (b.dataset.pedidoAprovado) {
+    const t = estado.trabalhos.find((x) => x.id === b.dataset.pedidoAprovado);
+    if (t) mostrarPedido('Pedido para agendar', pedidoAprovado(t), 'aprovado');
+  }
+  if (b.hasAttribute('data-limpar-trecho') && vid) {
+    vid.trecho = '';
+    $('#v-trecho').hidden = true;
+  }
+  if (b.dataset.ir !== undefined && $('#v-player')) {
+    const v = $('#v-player');
+    v.currentTime = Number(b.dataset.ir) || 0;
+    v.pause();
+  }
+  if (b.dataset.fb && vid) {
+    const r = await fetch('/api/feedback/' + encodeURIComponent(vid.trabalho.id) + '/' + b.dataset.n + '/' + b.dataset.fb, { method: 'POST' }).catch(() => null);
+    if (r && r.ok) {
+      vid.comentarios = (await r.json()).comentarios;
+      desenharFeedback();
+      ciclo();
+    }
+  }
+});
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-editar]');
+  if (!b) return;
+  const p = proprias.find((x) => x.slug === b.dataset.editar);
+  if (!p) return;
+  const texto = 'Naper Studio · Ajustar a função ' + p.titulo + ' (minhas-funcoes/' + p.slug + '.json e .md): o que mudar: ';
+  mostrarPedido('Ajustar "' + p.titulo + '"', texto, 'ajustar-funcao');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const p = $('#modal-pedido');
+  if (p && !p.hidden) p.hidden = true;
+  else if (vid) fecharVideo();
+});
