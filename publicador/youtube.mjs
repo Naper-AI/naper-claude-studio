@@ -46,6 +46,15 @@ try {
   if (!/studio\.youtube\.com|youtube\.com\/upload/.test(page.url()) || /accounts\.google|ServiceLogin|signin/.test(page.url())) {
     await parar(3, { ok: false, parou: 'sem login: o YouTube não está logado neste Chrome. Rode "node publicador/chrome.mjs --login youtube", entre e tente de novo. Nada foi postado.' });
   }
+  // Na 1ª visita ao Studio aparece uma tela de boas-vindas que bloqueia os cliques: fecha em "Continuar".
+  const fecharBoasVindas = async () => {
+    for (let i = 0; i < 4; i++) {
+      const n = await page.evaluate(() => { const b = document.querySelector('ytcp-warm-welcome-dialog #dismiss-button'); if (b) { b.click(); return 1; } return 0; }).catch(() => 0);
+      if (n) { await esperar(1200); return; }
+      await esperar(700);
+    }
+  };
+  await fecharBoasVindas();
   // Se abriu só o Studio sem o diálogo de upload, usa Criar › Enviar vídeos.
   if (!(await page.locator('input[type=file]').count())) {
     await page.locator('#create-icon, [aria-label="Create"], [aria-label="Criar"]').first().click().catch(() => {}); await esperar(1000);
@@ -56,6 +65,7 @@ try {
   await page.locator('input[type=file]').first().setInputFiles(c.arquivo);
   await page.locator('#title-textarea #textbox, ytcp-social-suggestions-textbox #textbox').first().waitFor({ timeout: 120000 });
   await esperar(2000); log('vídeo enviado');
+  await fecharBoasVindas();
 
   const campoTitulo = page.locator('#title-textarea #textbox').first();
   await campoTitulo.click(); await page.keyboard.press('Control+A'); await page.keyboard.press('Backspace'); await page.keyboard.type(titulo, { delay: 15 });
