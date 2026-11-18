@@ -301,6 +301,11 @@ renderBiblioteca();
 const inicial = location.hash.slice(1);
 if (['onboarding', 'biblioteca', 'galeria', 'editor'].includes(inicial)) abaAtual = inicial;
 mostrar(abaAtual);
+// O endereço mudou (link, favorito ou o Claude abrindo #editor): troca de aba sem recarregar.
+window.addEventListener('hashchange', () => {
+  const aba = location.hash.slice(1);
+  if (['onboarding', 'biblioteca', 'galeria', 'editor'].includes(aba) && aba !== abaAtual) mostrar(aba);
+});
 ciclo().then(() => {
   if (estado && estado.onboarding.validado && abaAtual === 'onboarding' && inicial !== 'onboarding') mostrar('biblioteca');
 });
