@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Naper Studio · Claude + Naper</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca"><span class="ponto"></span><strong>Naper Studio</strong><span class="mais">Claude + Naper</span></div>
+  <nav class="abas" id="abas" hidden>
+    <button data-aba="biblioteca" class="ativa">Biblioteca</button>
+    <button data-aba="galeria">Galeria</button>
+    <button data-aba="editor">Ver o editor</button>
+    <button data-aba="onboarding" class="discreta">Configuração</button>
+  </nav>
+  <div class="vivo" id="vivo"><span class="luz"></span><span id="vivo-txt">conectando…</span></div>
+</header>
+
+<main>
+  <section id="onboarding" class="area">
+    <div class="cab">
+      <p class="sobre">Primeira vez · o Claude faz por você</p>
+      <h1>Vamos deixar o seu Claude pronto</h1>
+      <p class="lead">Acompanhe aqui. O Claude marca cada item quando termina. Você só faz o que aparece em <b class="sua">Sua vez</b>.</p>
+      <div class="barra"><div id="barra-in"></div></div>
+      <p class="mudo" id="barra-txt"></p>
+    </div>
+    <ol class="passos" id="passos"></ol>
+    <p class="rodape-ob" id="rodape-ob"></p>
+  </section>
+
+  <section id="biblioteca" class="area" hidden>
+    <div class="cab">
+      <p class="sobre">Biblioteca</p>
+      <h1>O que o Claude faz por você hoje?</h1>
+      <p class="lead">Escolha uma função, preencha o briefing e mande para o Claude. Nada é publicado, enviado ou gasto sem o seu <b>"pode"</b>.</p>
+    </div>
+    <div class="funcoes" id="funcoes"></div>
+  </section>
+
+  <section id="galeria" class="area" hidden>
+    <div class="cab">
+      <p class="sobre">Galeria</p>
+      <h1>O que o Claude criou</h1>
+      <p class="lead">Tudo fica na sua pasta <code id="pasta-estudio">estudio/</code>. Os vídeos não abrem sozinhos: copie o caminho ou peça ao Claude.</p>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="grade" id="grade"></div>
+  </section>
+
+  <section id="editor" class="area" hidden>
+    <div class="cab cab-linha">
+      <div>
+        <p class="sobre">Ver o editor · ao vivo</p>
+        <h1 id="ed-titulo">Nenhum trabalho em andamento</h1>
+        <p class="lead" id="ed-sub">Quando o Claude começar uma edição, você acompanha aqui cada etapa.</p>
+      </div>
+      <select id="ed-escolha" aria-label="Escolher trabalho"></select>
+    </div>
+    <ol class="etapas" id="etapas"></ol>
+    <div class="ed-corpo">
+      <div class="cartao">
+        <h3>Trechos escolhidos <span class="mudo" id="ed-qtd"></span></h3>
+        <ol class="trechos" id="trechos"></ol>
+      </div>
+      <div class="cartao">
+        <h3>Último quadro</h3>
+        <div class="quadro" id="quadro"><span class="mudo">ainda sem quadro</span></div>
+        <h3 class="mt">Folha de quadros</h3>
+        <div class="folha" id="folha"><span class="mudo">sai quando o vídeo estiver montado</span></div>
+      </div>
+    </div>
+    <div class="cartao">
+      <h3>O que o Claude está fazendo</h3>
+      <ul class="log" id="log"></ul>
+    </div>
+  </section>
+</main>
+
+<div class="aviso" id="aviso" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>

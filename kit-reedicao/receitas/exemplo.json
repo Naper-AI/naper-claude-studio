@@ -1,0 +1,13 @@
+{
+  "trabalho": "2026-01-01_produto-exemplo_tiktok_v1",
+  "titulo": "Produto exemplo · escassez primeiro",
+  "redes": ["tiktok"],
+  "saida": "../../estudio/editados/2026-01-01_produto-exemplo_tiktok_v1.mp4",
+  "trechos": [
+    { "arquivo": "../../estudio/brutos/video-a.mp4", "ini": 0.00, "fim": 4.90, "frase": "Corre que está acabando o estoque." },
+    { "arquivo": "../../estudio/brutos/video-b.mp4", "ini": 0.30, "fim": 9.10, "frase": "Olha como ela veste no corpo." },
+    { "arquivo": "../../estudio/brutos/video-b.mp4", "ini": 11.20, "fim": 18.80, "frase": "Voltou todas as numerações." },
+    { "arquivo": "../../estudio/brutos/video-a.mp4", "ini": 4.95, "fim": 12.10, "frase": "Olha a quantidade de gente que já comprou." },
+    { "arquivo": "../../estudio/brutos/video-a.mp4", "ini": 12.20, "fim": 15.20, "frase": "É linda demais, vale muito a pena." }
+  ]
+}

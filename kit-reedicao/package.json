@@ -1,0 +1,12 @@
+{
+  "name": "kit-reedicao-naper",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Reedição natural: transcrever, cortar no fim das frases e recombinar os vídeos que mais venderam. Só FFmpeg e whisper.cpp; nada desenhado por cima.",
+  "type": "module",
+  "scripts": {
+    "transcrever": "node ferramentas/transcrever.mjs",
+    "reeditar": "node ferramentas/reeditar.mjs",
+    "folha": "node ferramentas/folha.mjs"
+  }
+}

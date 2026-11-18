@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "naper": {
+      "type": "http",
+      "url": "https://api.naper.ai/mcp"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node painel/iniciar.mjs",
+            "timeout": 45,
+            "statusMessage": "Naper Studio: atualizando e abrindo o painel"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node painel/pedido.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "enabledMcpjsonServers": ["naper"],
+  "permissions": {
+    "allow": [
+      "Bash(node painel/*)",
+      "Bash(node kit-reedicao/ferramentas/*)",
+      "Bash(git pull --ff-only*)",
+      "Bash(git status*)",
+      "Bash(ffmpeg -version*)",
+      "Bash(node --version*)"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+# Dados pessoais e vídeos NUNCA vão para o repositório (ele é público).
+marca/
+estado/
+relatorios/*
+!relatorios/.gitkeep
+estudio/**
+!estudio/brutos/
+!estudio/editados/
+!estudio/publicados/
+!estudio/brutos/.gitkeep
+!estudio/editados/.gitkeep
+!estudio/publicados/.gitkeep
+kit-reedicao/receitas/*
+!kit-reedicao/receitas/exemplo.json
+.claude/settings.local.json
+*.mp4
+*.mov
+*.m4v
+*.wav
+*.frases.json
+*.folha.png
+node_modules/
+.DS_Store
+Thumbs.db
