@@ -81,7 +81,15 @@ try {
     r.agendamento = (await page.locator('#visibility-title, #schedule-container, ytcp-video-visibility-select').first().innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
     log('agendamento digitado; conferir na foto (formato de data depende do idioma do Studio)');
   } else {
-    await page.locator('[name=PUBLIC]').first().click(); r.visibilidade = 'Pública';
+    // Marca "Público" e confere: sem o rádio marcado, o YouTube publicaria com a visibilidade errada.
+    const radio = page.locator('#privacy-radios tp-yt-paper-radio-button[name="PUBLIC"], tp-yt-paper-radio-button[name="PUBLIC"]').first();
+    const marcado = async () => (await radio.getAttribute('aria-checked').catch(() => null)) === 'true' || (await radio.getAttribute('checked').catch(() => null)) !== null;
+    await radio.scrollIntoViewIfNeeded().catch(() => {});
+    await radio.click().catch(() => {}); await esperar(700);
+    if (!(await marcado())) { await radio.locator('#radioLabel, #onRadio, #offRadio').first().click().catch(() => {}); await esperar(700); }
+    if (!(await marcado())) { await page.getByRole('radio', { name: /^\s*(Público|Public)\s*$/ }).first().click().catch(() => {}); await esperar(700); }
+    if (!(await marcado())) { r.foto = await foto('youtube-erro.png'); await parar(4, { ok: false, parou: 'não consegui marcar "Público" na Visibilidade. Nada foi publicado; o envio ficou como rascunho no YouTube Studio.' }); }
+    r.visibilidade = 'Pública (conferida)';
   }
   r.foto = await foto('youtube-conferencia.png');
 
