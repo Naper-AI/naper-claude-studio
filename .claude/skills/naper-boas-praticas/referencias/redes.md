@@ -5,6 +5,17 @@
 - **Produto ativo e com estoque antes de postar.** `produto_ficha` mostra o produto e a situação dela com ele; o estoque dos produtos da vitrine do TikTok dela está em `tiktok_vitrine`. Sem estoque ou sem comissão: avise e sugira outro.
 - **O produto do vídeo é o produto anexado.** Para medir de qual produto um vídeo vendeu, use o anexado ou, na falta, o que tem 20% ou mais dos pedidos do vídeo. O que aparece na imagem tem de ser o produto vinculado (cada cor ou variação também). Vídeo com produto diferente do anexado atrapalha a promoção.
 - **Como sai:** `publicar` manda para a **caixa de entrada** do app do TikTok (uma notificação). Ela abre no celular, vincula o produto do TikTok Shop (Adicionar link › Produtos) e posta. Post direto só se ela escolheu e a conta aceita (`tiktok_opcoes_de_postar` mostra as opções). Vídeo com produto passa por revisão.
+- **Post com o produto no carrinho, sem passar pelo celular:** a Naper não anexa o produto (o TikTok ainda não libera isso para apps). O caminho é o **Claude in Chrome** no TikTok Studio (tiktok.com/tiktokstudio/upload), com o TikTok logado na conta dela no Chrome. Passo a passo que funciona:
+  1. Confira a conta logada antes de tudo (nome e @ no topo). Conta errada: pare sem postar.
+  2. Suba o vídeo. A ferramenta do Chrome envia até 10 MB: se o arquivo for maior, gere uma cópia mais leve (mesmo vídeo e som, 1080x1920) antes.
+  3. Produto primeiro: Adicionar link › Produtos › busque pelo ID do produto e confira na linha nome, preço, **estoque** e status ativo. Sem estoque ou inativo: não poste.
+  4. O nome do produto que aparece no vídeo tem até 30 caracteres: troque o nome cortado por um curto e claro (ex.: "Calça wide slim Riachuelo").
+  5. Legenda: escreva a frase e escolha o @ da marca e cada hashtag **na lista de sugestões** do TikTok (só assim viram menção e hashtag de verdade).
+  6. Capa: escolha um quadro que mostre o produto inteiro (Editar capa).
+  7. Conteúdo de marca: em "Divulgar conteúdo do post", marque **Conteúdo de marca** quando a marca for citada.
+  8. Agendar ou postar: espere a checagem do TikTok terminar ("nenhum problema encontrado"). Se ele perguntar "postar antes da checagem?", cancele e espere: o clique não vale.
+  9. Confira na lista de posts que saiu (ou ficou agendado, com o horário) e com o carrinho.
+  - A autorização de anúncio (para a marca impulsionar o vídeo) não existe na web: liga-se no app, no post (⋯ › Configurações de anúncio).
 - **Legenda:** frase curta, o @ da marca (quando ela divulgar a marca) e 4 hashtags reais. Gancho no primeiro segundo e o produto aparecendo.
 - **Amostras:** `tiktok_amostras` e `plano_amostras` (prazo do vídeo). Grave primeiro o que tem prazo.
 - **Comentários do TikTok:** o conector não lê. Para isso, só pelo navegador dela e com o "pode".
