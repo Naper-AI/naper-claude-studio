@@ -41,9 +41,9 @@ Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (
 1. Liste `estudio/brutos/` (vídeos e fotos). Vazio: diga como trazer ("pelo app da Naper: Criar › Importar do TikTok, ou salve os vídeos do celular nesta pasta: `<caminho>`") e pare.
 2. Para cada vídeo: registre o trabalho (`em_fila`), transcreva com `--trabalho <id>` e faça a folha de quadros. Não abra nada na tela dela.
 3. Escolha os melhores trechos para o produto/assunto do briefing e monte **uma peça por rede** escolhida:
-   - **TikTok:** 20 a 40 s, gancho mais forte no primeiro segundo, produto aparecendo; vai para a caixa de entrada do app do TikTok (ela vincula o produto do TikTok Shop no app) ou é agendado pelo TikTok Studio se ela pedir e estiver logada no Chrome.
+   - **TikTok:** 20 a 40 s, gancho mais forte no primeiro segundo, produto aparecendo; sai pelo publicador com o produto no carrinho (passo 7). A caixa de entrada do app do TikTok é só o último recurso.
    - **Instagram Reels:** 15 a 30 s, com EU QUERO (chamada "comente QUERO") se as automações estiverem ligadas. **Stories:** 1 a 3 telas de até 15 s.
-   - **Facebook:** o mesmo Reels. **Pinterest:** vídeo curto ou foto, com o link da página dela. **YouTube Shorts:** até 60 s (a Naper não publica no YouTube: entregue o arquivo e a legenda). **Grupos de WhatsApp:** oferta do produto com o link da página dela.
+   - **Facebook:** o mesmo Reels. **Pinterest:** vídeo curto ou foto, com o link da página dela. **YouTube Shorts:** até 60 s, pelo publicador (`youtube.mjs`, beta; a Naper não publica no YouTube). Se ele falhar, entregue o arquivo e a legenda. **Grupos de WhatsApp:** oferta do produto com o link da página dela.
    - Use o kit (`kit-reedicao/CLAUDE.md`): só cortes, corte no fim da frase, nada desenhado por cima.
 4. Legendas: `textos_gerar` (1 crédito por rede: avise antes) **ou** escreva você no tom da marca (grátis); ajuste com `textos_editar`. Padrão que vende: frase curta + @marca + 4 hashtags reais.
 5. Suba para a Naper: `midia_enviar` → envio do arquivo (o comando que ela devolve) → `midia_concluir` → `rascunho_vincular` ao produto (`links_buscar` ou `link.por_url` para achar) → `rascunho_dm` se houver EU QUERO.

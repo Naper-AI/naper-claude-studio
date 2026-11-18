@@ -4,10 +4,11 @@
 - **A pauta nasce dos dados do TikTok dela** (`tiktok_videos`, `ganhos_ver`, `tiktok_perfil`), não de anúncios do Instagram. Ordene por **comissão**, não por visualização.
 - **Produto ativo e com estoque antes de postar.** `produto_ficha` mostra o produto e a situação dela com ele; o estoque dos produtos da vitrine do TikTok dela está em `tiktok_vitrine`. Sem estoque ou sem comissão: avise e sugira outro.
 - **O produto do vídeo é o produto anexado.** Para medir de qual produto um vídeo vendeu, use o anexado ou, na falta, o que tem 20% ou mais dos pedidos do vídeo. O que aparece na imagem tem de ser o produto vinculado (cada cor ou variação também). Vídeo com produto diferente do anexado atrapalha a promoção.
-- **Como sai:** `publicar` manda para a **caixa de entrada** do app do TikTok (uma notificação). Ela abre no celular, vincula o produto do TikTok Shop (Adicionar link › Produtos) e posta. Post direto só se ela escolheu e a conta aceita (`tiktok_opcoes_de_postar` mostra as opções). Vídeo com produto passa por revisão.
-- **Post com o produto no carrinho, sem passar pelo celular:** a Naper não anexa o produto (o TikTok ainda não libera isso para apps). O caminho é o **Claude in Chrome** no TikTok Studio (tiktok.com/tiktokstudio/upload), com o TikTok logado na conta dela no Chrome. Passo a passo que funciona:
+- **Como sai (padrão): pelo publicador, com o produto no carrinho.** A Naper não anexa o produto (o TikTok ainda não libera isso para apps), então você posta pelo TikTok Studio num Chrome só do Naper Studio: `node publicador/tiktok.mjs post.json` (`publicador/README.md`). Ela entra no TikTok uma vez nesse Chrome (`node publicador/chrome.mjs --login tiktok`); depois disso é com você.
+- **Último recurso:** só se o publicador falhar, `publicar` manda o vídeo para a **caixa de entrada** do app do TikTok; avise que o produto fica para ela pôr no celular (Adicionar link › Produtos). Vídeo com produto passa por revisão.
+- **O que o publicador faz (e o que conferir se precisar fazer à mão no TikTok Studio, tiktok.com/tiktokstudio/upload):**
   1. Confira a conta logada antes de tudo (nome e @ no topo). Conta errada: pare sem postar.
-  2. Suba o vídeo. A ferramenta do Chrome envia até 10 MB: se o arquivo for maior, gere uma cópia mais leve (mesmo vídeo e som, 1080x1920) antes.
+  2. Suba o vídeo original (o publicador envia o arquivo inteiro; a extensão Claude in Chrome só envia até 10 MB).
   3. Produto primeiro: Adicionar link › Produtos › busque pelo ID do produto e confira na linha nome, preço, **estoque** e status ativo. Sem estoque ou inativo: não poste.
   4. O nome do produto que aparece no vídeo tem até 30 caracteres: troque o nome cortado por um curto e claro (ex.: "Calça wide slim Riachuelo").
   5. Legenda: escreva a frase e escolha o @ da marca e cada hashtag **na lista de sugestões** do TikTok (só assim viram menção e hashtag de verdade).
@@ -28,7 +29,7 @@
 - Conecte pelo app. Várias contas: a principal é a usada quando ninguém diz qual (`conexao_principal`, `conexao_ordem`).
 
 ## YouTube
-- **A Naper não publica no YouTube.** Entregue o arquivo e o texto (título curto com o nome do produto, descrição de 3 linhas com o **link da página ou da coleção**) e deixe que ela envie. Se ela quiser ajuda no YouTube Studio, só pelo Claude no Chrome dela, parando antes de Publicar ou Agendar.
+- **A Naper não publica no YouTube; o publicador publica (beta):** `node publicador/youtube.mjs post.json` com título curto com o nome do produto e descrição de 3 linhas com o **link da página ou da coleção**. Ela entra no YouTube uma vez no Chrome do Naper Studio (`--login youtube`). Confira no YouTube Studio (Conteúdo › Shorts) que saiu; se falhar, entregue o arquivo e o texto para ela enviar.
 - Shorts: vertical, até 60 segundos. Vídeo horizontal: use o **QR code** de produto, coleção ou grupo no fim (`links-e-qr.md`).
 - Link por escrito na descrição sempre, além do QR.
 

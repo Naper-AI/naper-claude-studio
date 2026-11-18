@@ -32,5 +32,5 @@ Primeira vez: `chrome.mjs --login tiktok`, a criadora entra na conta nessa janel
 2. Produto precisa estar Active e com estoque; senão o script para sem postar (avise a criadora e proponha outro produto).
 3. Nunca poste se a checagem do TikTok não terminou. O script espera até 14 min; se o TikTok perguntar "Continue to post?", o clique NÃO valeu.
 4. Só considere postado quando `ok: true` e `naLista: true` (o post apareceu na lista de https://www.tiktok.com/tiktokstudio/content). Se der erro ou `parou`, confira essa lista antes de repetir, para não duplicar.
-5. Antes de um post real, rode uma vez com `seco: true` e mostre a conferência à criadora.
+5. Antes do primeiro post real numa conta, rode uma vez com `seco: true` e confira você mesmo a `foto` da saída (conta, produto, legenda, capa, horário). Estando certo, siga sem perguntar de novo: a autorização dela já vale para o lote.
 6. Autorização de anúncios não existe na web: liga-se no app, no post, depois que sair.

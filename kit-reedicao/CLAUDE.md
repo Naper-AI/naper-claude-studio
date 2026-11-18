@@ -12,7 +12,7 @@ O padrão aprovado é **vídeo natural**: só cortes e recombinação dos vídeo
 5. **Montar a receita** (marque antes `node painel/registrar.mjs etapa <id> escolhendo "..."`) em `kit-reedicao/receitas/<id>.json` (veja `receitas/exemplo.json`): 3 a 6 trechos, 20 a 45 s no total, cada trecho começa e termina numa frase inteira. Estilos que funcionam: escassez primeiro; prova social primeiro; pergunta da cliente ("Respondendo a") e a resposta com o melhor trecho de outro vídeo; curto e direto (15 a 22 s); dois looks.
 6. **Reeditar:** `node kit-reedicao/ferramentas/reeditar.mjs kit-reedicao/receitas/<id>.json` (saída em `estudio/editados/AAAA-MM-DD_produto_rede_vN.mp4`; registra `cortando` e `conferindo` e já faz a folha de quadros).
 7. **Conferir sem abrir:** olhe a folha `<video>.folha.png` (ou `node kit-reedicao/ferramentas/folha.mjs <video> 10 --trabalho <id>`): produto aparecendo, nenhum corte brusco da mesma pessoa, nenhuma frase cortada. Ok: `node painel/registrar.mjs etapa <id> pronto "Conferido pela folha"`.
-8. **Entregar:** o caminho do arquivo, a receita em 1 linha por trecho e 2 ou 3 variações de ordem (ganchos diferentes). Publicar só com o "pode" dela: Instagram/Facebook/grupos pela Naper; TikTok vai para a caixa de entrada do app, onde ela vincula o produto.
+8. **Entregar:** o caminho do arquivo, a receita em 1 linha por trecho e 2 ou 3 variações de ordem (ganchos diferentes). Publicar só com o "pode" dela: Instagram/Facebook/Pinterest/grupos pela Naper; TikTok com o produto no carrinho e YouTube pelo publicador (`publicador/README.md`).
 
 ## Cuidados
 - Só vídeos DELA. Vídeo de outra criadora é referência de roteiro, nunca trecho.

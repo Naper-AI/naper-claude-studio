@@ -32,7 +32,7 @@ Quem assiste no computador ou na TV não clica no link da descrição: o QR leva
 3. Mostre a ela onde o QR entra e por quanto tempo, e espere o "pode".
 4. Monte o vídeo só com **cortes** dos vídeos dela (kit de reedição). O card de QR é a única coisa por cima: imagem pronta da Naper, sem animação. Coloque quando você falar do produto e nos últimos segundos, grande o bastante para a câmera ler da tela (comece por cerca de 30% da altura do quadro) e sem cobrir o rosto nem o produto.
 5. **Teste:** exporte um quadro, abra o QR com a câmera do celular dela (ou leia o quadro por programa) e confira que abre a coleção, o produto ou o grupo certo.
-6. Escreva o título e a descrição com o **mesmo link por escrito** (o QR não ajuda quem assiste no celular). A Naper não publica no YouTube: entregue o arquivo e o texto; quem envia é ela.
+6. Escreva o título e a descrição com o **mesmo link por escrito** (o QR não ajuda quem assiste no celular). A Naper não publica no YouTube: publique pelo publicador (`node publicador/youtube.mjs`, beta) ou, se ele falhar, entregue o arquivo e o texto para ela enviar.
 
 Sacada: a coleção "só para vínculo" serve bem para vídeo: ela abre pelo link sem poluir a lista da Bio (`referencias/colecoes.md`).
 

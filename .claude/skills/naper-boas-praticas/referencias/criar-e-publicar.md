@@ -18,7 +18,7 @@ Roteiro pronto no conector: `criar_post`. Para coleção: `colecao_post` (`colec
 - **Publicar, agendar e mandar nos grupos sem aprovação.**
 - **Ligar automações (EU QUERO, DMs).**
 - **Padrão recomendado: os dois ligados.** Por quê: com eles você faz o trabalho inteiro, e a segurança vem do seu "pode" na conversa. Se ela preferir aprovar tudo no app, desligue o primeiro: aí `publicar` só deixa o rascunho marcado (redes, grupos e horário) para ela aprovar lá.
-- **Mesmo ligados, confirme com ela antes de publicar.** O interruptor só dispensa a aprovação no app; a conversa continua pedindo.
+- **A autorização é uma por lote.** O interruptor dispensa a aprovação no app; na conversa, o pedido dela ("pode publicar"), a aprovação na Galeria ou um "pode" valem para o lote inteiro. Não pergunte de novo a cada post.
 - Ela muda a qualquer hora e pode revogar o acesso em Conta › Claude e API (vale em até 30 segundos).
 - Ver o estado: `conta_ver`. Interruptor desligado = `ESCOPO_INSUFICIENTE`: diga onde ligar.
 
@@ -34,5 +34,5 @@ Roteiro pronto no conector: `criar_post`. Para coleção: `colecao_post` (`colec
 ## Erros comuns
 - Publicar com o rascunho sem produto vinculado (EU QUERO não liga sozinho sem produto no post).
 - Legenda de IA sem avisar do crédito.
-- Esperar que o TikTok saia direto: o padrão é a caixa de entrada do app do TikTok (`redes.md`).
+- Mandar o TikTok para a caixa de entrada quando dá para postar com o produto no carrinho pelo publicador (`redes.md`).
 - Agendar item da Galeria que não está `aprovado` nem teve o "pode".
