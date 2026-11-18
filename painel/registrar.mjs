@@ -5,6 +5,8 @@
 //   node painel/registrar.mjs trabalho <id> --titulo "..." [--tipo video|carrossel|relatorio|legenda]
 //        [--produto "..."] [--redes "tiktok,instagram"] [--status em_fila|editando|pronto_para_aprovar|agendado|publicado]
 //        [--arquivo estudio/editados/x.mp4] [--folha estudio/editados/x.folha.png] [--nota "..."] [--quando "2026-11-20 19:00"]
+//        [--novo sim]   (ao CRIAR uma peça: falha se o id já existe, para não sobrescrever outra conversa)
+//   node painel/registrar.mjs remover <id>            (tira o item da Galeria; não apaga arquivos)
 //   node painel/registrar.mjs etapa <id> <em_fila|transcrevendo|escolhendo|cortando|conferindo|pronto> ["mensagem"]
 //        [--quadro estudio/...png] [--folha estudio/...png]
 //   node painel/registrar.mjs ver
@@ -30,8 +32,11 @@ try {
       redes: opcoes.redes ? opcoes.redes.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
       arquivo: opcoes.arquivo ? E.relativo(opcoes.arquivo) : undefined,
       folha: opcoes.folha ? E.relativo(opcoes.folha) : undefined,
-    });
+    }, { novo: Boolean(opcoes.novo) });
     console.log('trabalho ' + item.id + ' (' + item.status + ')');
+  } else if (cmd === 'remover') {
+    E.removerTrabalho(posicionais[0]);
+    console.log('removido da Galeria: ' + posicionais[0]);
   } else if (cmd === 'etapa') {
     if (!E.ETAPAS.includes(posicionais[1])) throw new Error('etapa inválida (use: ' + E.ETAPAS.join(', ') + ')');
     E.registrarProgresso(posicionais[0], {

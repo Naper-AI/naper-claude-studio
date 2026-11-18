@@ -47,7 +47,7 @@ Se ela tiver pressa, o mínimo para validar é: `ferramentas`, `naper`, `teste_n
 
 ## Pastas
 
-- `estudio/brutos/` (o que ela gravou ou importou), `estudio/editados/` (o que você montou: `AAAA-MM-DD_produto_rede_vN.mp4`), `estudio/publicados/` (o que já saiu). `estudio/trabalhos.json` e `estudio/trabalhos/<id>/progresso.json` = Galeria e editor do painel.
+- `estudio/brutos/` (só vídeo cru que ela gravou), `estudio/campeoes/` (vídeos já postados que mais venderam, para a Função 3), `estudio/editados/` (o que você montou: `AAAA-MM-DD_produto_rede_vN.mp4`), `estudio/publicados/` (o que já saiu). `estudio/trabalhos.json` e `estudio/trabalhos/<id>/progresso.json` = Galeria e editor do painel.
 - `marca/minha-marca.md` (a marca dela), `relatorios/` (análises), `estado/` (onboarding e painel).
 - `kit-reedicao/` (leia `kit-reedicao/CLAUDE.md` antes de editar vídeo).
 - Tudo isso é **dela e fica só no computador dela** (está no `.gitignore`). Nunca proponha subir para o GitHub.

@@ -79,12 +79,14 @@ export function trabalhos() {
   return Array.isArray(t.trabalhos) ? t.trabalhos : [];
 }
 // Cria ou atualiza um trabalho (item da Galeria). Campos: titulo, tipo, produto, redes, status, arquivo, folha, nota.
-export function salvarTrabalho(id, campos) {
+export function salvarTrabalho(id, campos, { novo = false } = {}) {
   if (!/^[a-z0-9][a-z0-9._-]{0,80}$/i.test(id)) throw new Error('id inválido (use letras, números, - e _): ' + id);
   if (campos.status && !STATUS_TRABALHO.includes(campos.status)) throw new Error('status inválido: ' + campos.status + ' (use: ' + STATUS_TRABALHO.join(', ') + ')');
   const t = ler(ARQ_TRABALHOS, { trabalhos: [] });
   t.trabalhos = Array.isArray(t.trabalhos) ? t.trabalhos : [];
   let item = t.trabalhos.find((x) => x.id === id);
+  // --novo: quem cria uma peça nova nunca reaproveita o id de outra conversa (duas funções podem rodar juntas).
+  if (item && novo) throw new Error('já existe um trabalho com o id ' + id + ' (de outra conversa?): escolha outro id');
   if (!item) {
     item = { id, titulo: id, tipo: 'video', status: 'em_fila', criadoEm: agora() };
     t.trabalhos.unshift(item);
@@ -93,6 +95,15 @@ export function salvarTrabalho(id, campos) {
   item.atualizadoEm = agora();
   gravar(ARQ_TRABALHOS, t);
   return item;
+}
+// Tira um item da Galeria (e o progresso dele). Os arquivos em estudio/ não são apagados.
+export function removerTrabalho(id) {
+  const t = ler(ARQ_TRABALHOS, { trabalhos: [] });
+  const antes = Array.isArray(t.trabalhos) ? t.trabalhos.length : 0;
+  t.trabalhos = (t.trabalhos || []).filter((x) => x.id !== id);
+  if (t.trabalhos.length === antes) throw new Error('não achei o trabalho ' + id);
+  gravar(ARQ_TRABALHOS, t);
+  fs.rmSync(path.join(DIR_TRABALHOS, id), { recursive: true, force: true });
 }
 export function arqProgresso(id) {
   return path.join(DIR_TRABALHOS, id, 'progresso.json');

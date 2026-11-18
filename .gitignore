@@ -7,9 +7,11 @@ estudio/**
 !estudio/brutos/
 !estudio/editados/
 !estudio/publicados/
+!estudio/campeoes/
 !estudio/brutos/.gitkeep
 !estudio/editados/.gitkeep
 !estudio/publicados/.gitkeep
+!estudio/campeoes/.gitkeep
 kit-reedicao/receitas/*
 !kit-reedicao/receitas/exemplo.json
 .claude/settings.local.json

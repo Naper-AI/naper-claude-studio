@@ -6,7 +6,7 @@ O padrão aprovado é **vídeo natural**: só cortes e recombinação dos vídeo
 
 ## O fluxo (comandos rodados da raiz do Naper-Studio)
 1. **Quais vídeos:** os que mais venderam, pelos dados do TikTok dela na Naper (`tiktok_videos`, `ganhos_ver`, `relatorio_ver`). O produto de um vídeo é o anexado ou o que tem 20% ou mais dos pedidos dele. Prefira juntar vídeos do MESMO produto.
-2. **Os arquivos:** em `estudio/brutos/`. Ela traz pela Naper (no app: Criar › Importar do TikTok) ou salva no app do TikTok. Se o vídeo está num rascunho da Naper, veja a mídia com `rascunho_ver` e baixe para `estudio/brutos/`.
+2. **Os arquivos:** vídeos já postados (campeões) em `estudio/campeoes/`; vídeo cru que ela gravou em `estudio/brutos/`. Ela traz pela Naper (no app: Criar › Importar do TikTok) ou salva no app do TikTok. Se o vídeo está num rascunho da Naper, veja a mídia com `rascunho_ver` e baixe para `estudio/campeoes/`.
 3. **Registrar o trabalho:** `node painel/registrar.mjs trabalho <id> --titulo "..." --tipo video --redes "tiktok" --status em_fila`.
 4. **Transcrever** cada vídeo: `node kit-reedicao/ferramentas/transcrever.mjs <video> --trabalho <id>` (gera `<video>.frases.json` com início e fim de cada frase).
 5. **Montar a receita** (marque antes `node painel/registrar.mjs etapa <id> escolhendo "..."`) em `kit-reedicao/receitas/<id>.json` (veja `receitas/exemplo.json`): 3 a 6 trechos, 20 a 45 s no total, cada trecho começa e termina numa frase inteira. Estilos que funcionam: escassez primeiro; prova social primeiro; pergunta da cliente ("Respondendo a") e a resposta com o melhor trecho de outro vídeo; curto e direto (15 a 22 s); dois looks.

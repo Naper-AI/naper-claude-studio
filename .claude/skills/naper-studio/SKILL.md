@@ -56,7 +56,7 @@ Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (
 
 1. Ache os campeões do produto (vazio = o nº 1 dela): `tiktok_videos` + `ganhos_ver` (produto do vídeo = anexado ou 20% ou mais dos pedidos). Pegue os 2 a 4 que mais venderam o MESMO produto, mais os vídeos mais fracos do mesmo produto (deles dá para usar o meio e o fim).
 2. Confira o produto antes de gastar tempo: `produto_ficha` (ativo, com estoque). Sem estoque: avise e sugira outro.
-3. Os arquivos: em `estudio/brutos/`. Faltando, diga quais vídeos são (data, primeira frase, vendas) e peça para ela trazer pela Naper (Criar › Importar do TikTok) ou salvar no app do TikTok. Se o vídeo está num rascunho da Naper, `rascunho_ver` mostra a mídia: baixe para `estudio/brutos/`.
+3. Os arquivos: em `estudio/campeoes/` (vídeos que já foram postados; `estudio/brutos/` é só para vídeo cru que ela gravou). Faltando, diga quais vídeos são (data, primeira frase, vendas) e peça para ela trazer pela Naper (Criar › Importar do TikTok) ou salvar no app do TikTok. Se o vídeo está num rascunho da Naper, `rascunho_ver` mostra a mídia: baixe para `estudio/campeoes/`.
 4. Para cada versão, registre o trabalho (`node painel/registrar.mjs trabalho <id> --titulo "Produto · gancho" --tipo video --redes "tiktok" --status em_fila`).
 5. Transcreva cada vídeo: `node kit-reedicao/ferramentas/transcrever.mjs <video> --trabalho <id>`.
 6. Marque `escolhendo` e monte a receita em `kit-reedicao/receitas/<id>.json` (com `"trabalho": "<id>"`, `"titulo"`, `"redes"`): 3 a 6 trechos, cada um começando e terminando numa frase inteira, gancho mais forte primeiro. Um gancho diferente por versão (escassez primeiro; prova social primeiro; pergunta da cliente + a melhor resposta de outro vídeo; curto e direto 15 a 22 s; dois looks).
@@ -89,3 +89,6 @@ Faça no começo de cada sessão já validada, **em silêncio** (só leitura, na
 6. **Painel em dia:** trabalhos `agendado` cujo horário passou: confira com `publicacoes_estado` e marque `publicado`.
 
 Nada disso publica, manda mensagem, gasta crédito ou apaga. Se ela disser "hoje não", pule as tarefas na sessão.
+
+## Galeria sem colisão
+Mais de uma conversa pode rodar ao mesmo tempo na mesma pasta. Ao criar uma peça, use um id com o produto, a rede, a versão e 4 letras desta conversa (ex.: `2026-11-18_calca-wide_tiktok_v1_k7qz`) e passe `--novo sim` no primeiro `registrar.mjs trabalho`. Nunca mexa em itens que você não criou. Para tirar um item seu: `node painel/registrar.mjs remover <id>`.
