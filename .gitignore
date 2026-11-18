@@ -27,3 +27,4 @@ kit-reedicao/receitas/*
 node_modules/
 .DS_Store
 Thumbs.db
+package-lock.json
