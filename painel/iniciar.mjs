@@ -119,20 +119,22 @@ function resumoOnboarding() {
     else if (s.app !== 'naper-studio') linhas.push('painel: a porta ' + PORTA + ' está ocupada por outro programa');
     else linhas.push('painel no ar em ' + URL_PAINEL);
 
-    // Abre o navegador uma vez por sessão (na abertura da sessão, ou quando pedido com --abrir).
+    // Abre o navegador na abertura de uma sessão, mas no máximo 1 vez a cada 2 horas (várias conversas
+    // abertas em seguida não enchem o navegador de abas). --abrir força.
     const marca = path.join(RAIZ, 'estado', 'ultima-abertura.json');
     let ultima = {};
     try {
       ultima = JSON.parse(fs.readFileSync(marca, 'utf8'));
     } catch {}
     const sessao = entrada.session_id || 'manual-' + new Date().toISOString().slice(0, 13);
-    const querAbrir = args.includes('--abrir') || (fonte === 'startup' && ultima.sessao !== sessao);
+    const faz = ultima.quando ? Date.now() - Date.parse(ultima.quando) : Infinity;
+    const querAbrir = args.includes('--abrir') || (fonte === 'startup' && ultima.sessao !== sessao && !(faz < 2 * 3600 * 1000));
     if (s && s.app === 'naper-studio' && querAbrir && !process.env.NAPER_NAO_ABRIR) {
       abrirNavegador();
       fs.mkdirSync(path.dirname(marca), { recursive: true });
       fs.writeFileSync(marca, JSON.stringify({ sessao, quando: new Date().toISOString() }));
       linhas.push('aberto no navegador dela agora (não abra de novo nesta sessão)');
-    } else if (s) linhas.push('não abri o navegador (já aberto nesta sessão ou retomada)');
+    } else if (s) linhas.push('não abri o navegador (já aberto há pouco, nesta sessão ou retomada): ' + URL_PAINEL);
 
     linhas.push(resumoOnboarding());
     if (fs.existsSync(path.join(RAIZ, 'estado', 'pedido-pendente.json'))) linhas.push('há um pedido da Biblioteca esperando em estado/pedido-pendente.json');
