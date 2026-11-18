@@ -18,7 +18,7 @@ Esta é a pasta de trabalho de uma **criadora de conteúdo e afiliada** (TikTok 
 O painel só mostra o que você registra. Use sempre (ela nunca roda isto):
 
 - Passo do onboarding: `node painel/registrar.mjs passo <id> <falta|fazendo|precisa_voce|ok|pulado|erro> "nota de 1 linha"`
-  - ids: `claude`, `repositorio`, `ferramentas`, `transcricao`, `naper`, `teste_naper`, `marca`, `whatsapp`, `validacao`
+  - ids: `claude`, `repositorio`, `ferramentas`, `transcricao`, `naper`, `teste_naper`, `marca`, `whatsapp`, `publicacao`, `validacao`
   - Marque `fazendo` ao começar, `precisa_voce` quando for a vez dela, `ok` ao terminar. A nota aparece para ela (sem números da conta, sem dados pessoais).
 - Validar: `node painel/registrar.mjs validar` (só passa com todos os passos `ok` ou `pulado`).
 - **Todo trabalho** (vídeo, carrossel, legenda, relatório) vira item da Galeria: `node painel/registrar.mjs trabalho <id> --titulo "..." --tipo video --redes "tiktok,reels" --status em_fila --arquivo estudio/editados/x.mp4 --folha estudio/editados/x.folha.png --nota "..." --quando "20/11 19h"`

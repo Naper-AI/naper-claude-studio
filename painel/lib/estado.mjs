@@ -15,7 +15,7 @@ export const DIR_TRABALHOS = path.join(RAIZ, 'estudio', 'trabalhos');
 export const PASSOS = [
   { id: 'claude', titulo: 'Claude Code funcionando', explica: 'O Claude abriu nesta pasta e já trabalha por você.', dela: '' },
   { id: 'repositorio', titulo: 'Naper Studio instalado e atualizando', explica: 'A pasta Documentos/Naper-Studio se atualiza sozinha toda vez que você abre o Claude.', dela: '' },
-  { id: 'ferramentas', titulo: 'Node e FFmpeg', explica: 'Os programas que cortam e juntam os seus vídeos. O Claude instala, com a sua licença.', dela: 'Aprovar a instalação quando o Claude pedir.' },
+  { id: 'ferramentas', titulo: 'Node e FFmpeg', explica: 'Os programas que cortam e juntam os seus vídeos. O Claude avisa e instala sozinho.', dela: 'Clicar em Sim se o computador pedir permissão.' },
   { id: 'transcricao', titulo: 'Transcrição dos vídeos (whisper)', explica: 'Lê a fala dos seus vídeos no seu computador, para cortar sempre no fim da frase.', dela: '' },
   { id: 'naper', titulo: 'Naper conectada', explica: 'Liga o Claude à sua conta da Naper: vendas, vídeos, produtos, grupos e publicação.', dela: 'No app do Claude: Plugins (barra da esquerda) › Adicionar › Adicionar conector personalizado › Nome "Naper" › URL https://api.naper.ai/mcp › Continuar › Adicionar › Continuar conectando › entrar na Naper › Autorizar › Abrir Claude.' },
   { id: 'teste_naper', titulo: 'Teste da Naper', explica: 'O Claude puxa o seu panorama para confirmar que a conexão funciona.', dela: '' },
