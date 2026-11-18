@@ -14,7 +14,7 @@ Qualquer pessoa pode baixar. Só o time Naper atualiza.
 
 Pronto. O Claude instala tudo, abre o seu **painel** no navegador e vai marcando cada item. Você só:
 - aprova quando ele pedir permissão;
-- conecta a Naper (no app do Claude: **Configurações › Conectores › Adicionar conector personalizado** · Nome **Naper** · URL `https://api.naper.ai/mcp` · **Conectar** · entrar na Naper · **Autorizar**);
+- conecta a Naper (no app do Claude: **Plugins › Adicionar › Adicionar conector personalizado** · Nome **Naper** · URL `https://api.naper.ai/mcp` · **Continuar** · **Adicionar** · **Continuar conectando** · entrar na Naper · **Autorizar**);
 - responde umas perguntas sobre a sua marca.
 
 Depois da validação, o painel mostra a **Biblioteca** com 4 funções:

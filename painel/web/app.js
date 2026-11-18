@@ -17,11 +17,11 @@ const ETAPAS = [
 
 // ---------- Onboarding ----------
 const DETALHE_NAPER = `<ol>
-<li>No app do Claude, abra <b>Configurações › Conectores</b>.</li>
-<li>Clique em <b>Adicionar conector personalizado</b>.</li>
-<li>Nome: <b>Naper</b> · URL: <code>https://api.naper.ai/mcp</code> · clique em <b>Conectar</b>.</li>
-<li>O navegador abre na Naper: entre com o seu número de WhatsApp (chega um código).</li>
-<li>Deixe a sua conta marcada e clique em <b>Autorizar</b>. Volte ao Claude e diga <b>pronto</b>.</li>
+<li>No app do Claude, clique em <b>Plugins</b> (barra da esquerda) › botão <b>Adicionar</b>.</li>
+<li>Escolha <b>Adicionar conector personalizado</b>. (Em versões mais antigas do app: Configurações › Conectores.)</li>
+<li>Nome: <b>Naper</b> · URL: <code>https://api.naper.ai/mcp</code> · clique em <b>Continuar</b> e depois em <b>Adicionar</b>.</li>
+<li>O navegador abre: clique em <b>Continuar conectando</b> e entre na Naper com o seu número de WhatsApp (chega um código).</li>
+<li>Deixe a sua conta marcada e clique em <b>Autorizar</b>. Clique em <b>Abrir Claude</b> e diga <b>pronto</b> na conversa.</li>
 </ol>
 <p style="margin:8px 0 0">Na tela da Naper há dois interruptores. <b>Publicar, agendar e mandar nos grupos sem aprovação</b> vem ligado: o Claude publica quando você disser "pode" na conversa; quem prefere aprovar cada post no app desliga. <b>Ligar automações (EU QUERO, DMs)</b> vem desligado: ligado, o Claude pode configurar o EU QUERO por você.</p>
 <p style="margin:6px 0 0" class="mudo">Se estiver no Claude pelo terminal: digite <code>/mcp</code> › <b>naper</b> › <b>Authenticate</b>.</p>`;
