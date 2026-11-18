@@ -1,0 +1,13 @@
+{
+  "name": "naper-claude-studio",
+  "private": true,
+  "type": "module",
+  "description": "Naper Studio: publicador de posts (TikTok Shop com produto no carrinho, YouTube Shorts) por um Chrome com perfil próprio.",
+  "scripts": {
+    "chrome": "node publicador/chrome.mjs",
+    "conta": "node publicador/conta.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

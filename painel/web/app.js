@@ -66,19 +66,20 @@ const FUNCOES = [
   {
     id: 'brutos', num: '02', titulo: 'Use os meus brutos e crie conteúdo para todas as redes',
     desc: 'Os vídeos e fotos que você gravou viram uma peça para cada rede que você usa, com legenda e agenda proposta.',
-    sai: '1 peça por rede em <b>estudio/editados/</b> + legendas + agenda. Publica só com o seu "pode".',
+    sai: '1 peça por rede em <b>estudio/editados/</b> + legendas + agenda. Publica e agenda sozinho, ou deixa para você aprovar: você escolhe abaixo.',
     campos: `<div class="campo"><label>Produto ou assunto</label><input type="text" name="produto" placeholder="ex.: calça jeans wide da loja X"></div>
       <div class="campo"><label>Detalhes (preço, cupom, diferencial)</label><textarea name="detalhes" placeholder="ex.: tem do 36 ao 48, cupom de 10%, tecido que não amassa"></textarea></div>
       <div class="campo"><span class="rot">Redes que você usa</span>` + marcas('redes', REDES, ['tiktok', 'reels', 'stories']) + `</div>
       <div class="duplo"><div class="campo"><label>Tom</label><select name="tom"><option>O meu de sempre</option><option>Animado</option><option>Direto ao ponto</option><option>Especialista</option><option>Engraçado</option></select></div>
-      <div class="campo"><label>Chamada (CTA)</label><select name="cta"><option>Carrinho laranja (TikTok Shop)</option><option>Comente QUERO (EU QUERO)</option><option>Link na bio</option><option>Entre no meu grupo</option></select></div></div>`,
+      <div class="campo"><label>Chamada (CTA)</label><select name="cta"><option>Carrinho laranja (TikTok Shop)</option><option>Comente QUERO (EU QUERO)</option><option>Link na bio</option><option>Entre no meu grupo</option></select></div></div>
+      <div class="campo"><label>Quando ficar pronto</label><select name="publicar"><option value="sozinho" selected>Publicar e agendar sozinho (produto no carrinho, legenda, capa)</option><option value="aprovar">Deixar pronto para eu aprovar na Galeria</option></select></div>`,
     pedido: (f) => [
       'Naper Studio · Função 2 · Use os meus brutos e crie conteúdo para todas as redes (siga a skill naper-studio, função 2).',
       'Produto/assunto: ' + (f.produto || 'veja os brutos e me diga qual produto aparece') + '.',
       f.detalhes ? 'Detalhes: ' + f.detalhes + '.' : '',
       'Redes: ' + (f.redes.map((r) => REDES.find((x) => x[0] === r)[1]).join(', ') || 'TikTok') + '. Tom: ' + f.tom + '. Chamada: ' + f.cta + '.',
       'Use os meus brutos em estudio/brutos. Só cortes do que eu gravei, nada desenhado por cima. 1 peça por rede, legendas e uma agenda proposta. Registre cada peça na Galeria.',
-      'Mostre tudo antes e só publique ou agende depois do meu "pode".',
+      (f.publicar === 'aprovar' ? 'Deixe tudo pronto (upload, produto no carrinho, legenda, capa e agenda) e me avise para aprovar na Galeria; não publique antes.' : 'Pode publicar e agendar sozinho na agenda proposta, sem me perguntar de novo: suba os vídeos, ponha o produto no carrinho, escreva as legendas, escolha as capas e me mostre no final o que saiu, com os links.'),
     ],
   },
   {
@@ -89,14 +90,16 @@ const FUNCOES = [
       <div class="duplo"><div class="campo"><label>Quantas versões</label><select name="versoes"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
       <div class="campo"><label>Duração</label><select name="duracao"><option>Curto (15 a 22 s)</option><option selected>Médio (20 a 40 s)</option><option>Longo (40 a 60 s)</option></select></div></div>
       <div class="campo"><span class="rot">Redes</span>` + marcas('redes', REDES.slice(0, 6), ['tiktok', 'reels']) + `</div>
-      <div class="campo"><span class="rot">Ganchos para testar</span>` + marcas('ganchos', [['escassez', 'Escassez primeiro'], ['prova', 'Prova social primeiro'], ['pergunta', 'Pergunta da cliente'], ['curto', 'Curto e direto'], ['looks', 'Dois looks']], ['escassez', 'prova', 'pergunta']) + '</div>',
+      <div class="campo"><span class="rot">Ganchos para testar</span>` + marcas('ganchos', [['escassez', 'Escassez primeiro'], ['prova', 'Prova social primeiro'], ['pergunta', 'Pergunta da cliente'], ['curto', 'Curto e direto'], ['looks', 'Dois looks']], ['escassez', 'prova', 'pergunta']) + '</div>' + `
+      <div class="campo"><label>Quando ficar pronto</label><select name="publicar"><option value="sozinho" selected>Publicar e agendar sozinho (produto no carrinho, legenda, capa)</option><option value="aprovar">Deixar pronto para eu aprovar na Galeria</option></select></div>`,
     pedido: (f) => [
       'Naper Studio · Função 3 · Use os meus vídeos campeões e gere novos (siga a skill naper-studio, função 3).',
       'Produto: ' + (f.produto || 'o que mais vendeu para mim no TikTok') + '. Versões: ' + f.versoes + '. Duração: ' + f.duracao + '.',
       'Redes: ' + (f.redes.map((r) => REDES.find((x) => x[0] === r)[1]).join(', ') || 'TikTok') + '.',
       f.ganchos.length ? 'Ganchos para testar: ' + f.ganchos.map((g) => ({ escassez: 'escassez primeiro', prova: 'prova social primeiro', pergunta: 'pergunta da cliente', curto: 'curto e direto', looks: 'dois looks' }[g])).join(', ') + '.' : '',
       'Reedição natural: só cortes e recombinação dos meus vídeos que mais venderam, corte no fim da frase, pode usar o meio e o fim dos vídeos mais fracos do mesmo produto. Nada desenhado por cima.',
-      'Confira pela folha de quadros, não abra o vídeo na minha tela, registre o progresso no painel e não publique sem o meu "pode".',
+      'Confira pela folha de quadros, não abra o vídeo na minha tela e registre o progresso no painel.',
+      (f.publicar === 'aprovar' ? 'Deixe tudo pronto (upload, produto no carrinho, legenda, capa e agenda) e me avise para aprovar na Galeria; não publique antes.' : 'Pode publicar e agendar sozinho na agenda proposta, sem me perguntar de novo: suba os vídeos, ponha o produto no carrinho, escreva as legendas, escolha as capas e me mostre no final o que saiu, com os links.'),
     ],
   },
   {
@@ -575,7 +578,7 @@ function abrirItem(id) {
   desenharFeedback();
 }
 const pedidoAjuste = (t) => 'Naper Studio · Ajustes ' + (tipoArq(t.arquivo) === 'video' ? 'no vídeo ' : 'em ') + t.titulo + ' (' + t.arquivo + '): siga o feedback da Galeria em estudio/trabalhos/' + t.id + '/feedback.json e faça uma nova versão.';
-const pedidoAprovado = (t) => 'Naper Studio · Aprovado: ' + t.titulo + ' (' + (t.arquivo || t.id) + ') — pode agendar como combinado.';
+const pedidoAprovado = (t) => 'Naper Studio · Aprovado: ' + t.titulo + ' (' + (t.arquivo || t.id) + ') — pode publicar e agendar sozinho como combinado (produto no carrinho, legenda, capa), sem me perguntar de novo; me mostre o link quando sair.';
 async function enviarPedido(texto, funcao, aviso) {
   await copiar(texto);
   const r = await fetch('/api/pedido', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ funcao, texto }) }).catch(() => null);

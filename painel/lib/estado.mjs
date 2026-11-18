@@ -21,6 +21,7 @@ export const PASSOS = [
   { id: 'teste_naper', titulo: 'Teste da Naper', explica: 'O Claude puxa o seu panorama para confirmar que a conexão funciona.', dela: '' },
   { id: 'marca', titulo: 'A sua marca', explica: 'Seus @, nicho, lojas, tom de voz e marcas sim/não. O Claude sugere pelos seus dados; você confirma.', dela: 'Responder perguntas curtas.' },
   { id: 'whatsapp', titulo: 'WhatsApp', explica: 'Grupos de ofertas pela Naper. WhatsApp pessoal pelo Claude no Chrome é opcional: você aprova cada mensagem.', dela: 'Dizer se quer usar o WhatsApp pessoal (opcional).' },
+  { id: 'publicacao', titulo: 'Chrome de publicação', explica: 'Um Chrome só do Naper Studio, onde você entra uma vez no TikTok e no YouTube. Com ele, o Claude posta sozinho com o produto no carrinho.', dela: 'Entrar uma vez no seu TikTok (e YouTube, se usa) no Chrome que o Claude abrir.' },
   { id: 'validacao', titulo: 'Validação', explica: 'O Claude faz um teste de ponta a ponta (Naper, vídeo e painel) e libera a Biblioteca.', dela: '' },
 ];
 export const STATUS_PASSO = ['falta', 'fazendo', 'precisa_voce', 'ok', 'pulado', 'erro'];

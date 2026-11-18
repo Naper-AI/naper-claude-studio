@@ -11,7 +11,7 @@ Antes de qualquer função:
 3. Erros da Naper: `PLANO_NECESSARIO` (precisa de plano; sem plano só a conta), números do TikTok/Instagram pedem plano com **Analytics**; `NAO_CONECTADO` (a rede não está ligada no app); `LIMITE_EXCEDIDO` (espere os segundos que ele diz); `COTA_DIARIA_ESGOTADA`; `ESCOPO_INSUFICIENTE` (interruptor desligado no acesso: diga onde ela liga, Conta › Claude e API no app). Diga em 1 linha e siga com o que der.
 4. **Registre no painel** (`node painel/registrar.mjs ...`, ver CLAUDE.md): cada peça vira um trabalho; cada etapa de edição aparece em "Ver o editor".
 5. Números sempre com período e fonte ("TikTok, últimos 30 dias, pela Naper"). Nunca invente número.
-6. **Antes de publicar, agendar, mandar nos grupos, ligar EU QUERO, mudar vitrine/página, gastar crédito ou apagar:** mostre o que vai sair e espere o "pode".
+6. **Autônomo, com uma autorização só:** faça tudo sozinho sem perguntar no meio. Publicar, agendar, mandar nos grupos, ligar EU QUERO, mudar vitrine/página, gastar crédito ou apagar precisam de **uma** autorização para o lote, que vem no próprio pedido ("Pode publicar e agendar sozinho..."), na Galeria (item Aprovado) ou num "pode" na conversa. Com ela, execute tudo e mostre no fim o que saiu. Sem ela, deixe `pronto_para_aprovar` e diga em uma linha que basta aprovar. Nunca peça para ela fazer o que você consegue fazer.
 
 Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (leitura) ou `api_escrever` (escrita interna, nunca publica). Para descobrir os campos: `api_operacoes` com `busca`.
 
@@ -36,7 +36,7 @@ Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (
 
 ## Função 2 · Use os meus brutos e crie conteúdo para todas as redes
 
-**Sai:** 1 peça por rede em `estudio/editados/` + legendas + agenda proposta. Publica só com o "pode".
+**Sai:** 1 peça por rede em `estudio/editados/` + legendas + agenda. Se o pedido autoriza ("pode publicar e agendar sozinho"), publica e agenda tudo, com o produto no carrinho; senão deixa pronto para aprovar.
 
 1. Liste `estudio/brutos/` (vídeos e fotos). Vazio: diga como trazer ("pelo app da Naper: Criar › Importar do TikTok, ou salve os vídeos do celular nesta pasta: `<caminho>`") e pare.
 2. Para cada vídeo: registre o trabalho (`em_fila`), transcreva com `--trabalho <id>` e faça a folha de quadros. Não abra nada na tela dela.
@@ -48,7 +48,7 @@ Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (
 4. Legendas: `textos_gerar` (1 crédito por rede: avise antes) **ou** escreva você no tom da marca (grátis); ajuste com `textos_editar`. Padrão que vende: frase curta + @marca + 4 hashtags reais.
 5. Suba para a Naper: `midia_enviar` → envio do arquivo (o comando que ela devolve) → `midia_concluir` → `rascunho_vincular` ao produto (`links_buscar` ou `link.por_url` para achar) → `rascunho_dm` se houver EU QUERO.
 6. **Agenda proposta:** dias e horários pelo histórico (`tiktok_perfil`, `numeros_instagram`), em tabela (peça · rede · dia · hora · legenda · créditos). Registre cada peça como `pronto_para_aprovar`.
-7. Só depois do "pode": `publicar` (Instagram, TikTok e grupos juntos), `facebook_publicar`, `pinterest_publicar`, `grupo_enviar`. Confira com `publicacoes_estado` e marque `agendado` ou `publicado` no painel.
+7. Com a autorização (no pedido, na Galeria ou um "pode"): **TikTok com o produto no carrinho e YouTube pelo publicador** (`publicador/README.md`: `node publicador/tiktok.mjs post.json` com produto, legenda, @marca, hashtags, capa, conteúdo de marca e horário); Instagram, Facebook, Pinterest e grupos pelo conector (`publicar`, `facebook_publicar`, `pinterest_publicar`, `grupo_enviar`). Confira com `publicacoes_estado` (e a lista do TikTok) e marque `agendado` ou `publicado` no painel. Só se o publicador falhar, mande o TikTok pela Naper para a caixa de entrada e avise que o produto fica para ela pôr no celular.
 
 ## Função 3 · Use os meus vídeos campeões e gere novos
 
@@ -81,7 +81,7 @@ Ids com ponto (`plano.semana`, `radar.criadora`...) passam por `api_consultar` (
 
 Na Galeria ela abre cada peça no painel (vídeo com linha do tempo, imagem, relatório em Markdown) e comenta; vê em colunas (Kanban) e **aprova** com um clique. Status: `em_fila`, `editando`, `pronto_para_aprovar`, `ajustar`, `aprovado`, `agendado`, `publicado`.
 
-- **Só agende ou publique o que está `aprovado`** (`"aprovado": true` no item) **ou o que ela autorizou com o "pode" na conversa.** Item `pronto_para_aprovar` sem "pode" não sai. O pedido "Naper Studio · Aprovado: <título> — pode agendar como combinado" vale como o "pode": mostre o que vai sair (texto, destino, horário) e então agende. Depois de agendar ou publicar: `node painel/registrar.mjs trabalho <id> --status agendado` (ou `publicado`).
+- **Só agende ou publique o que está `aprovado`** (`"aprovado": true` no item) **ou o que ela autorizou com o "pode" na conversa.** Item `pronto_para_aprovar` sem "pode" não sai. O pedido "Naper Studio · Aprovado: <título> — pode publicar e agendar sozinho..." vale como a autorização: agende ou publique direto, sem perguntar de novo, e depois mostre o que saiu com os links. Depois de agendar ou publicar: `node painel/registrar.mjs trabalho <id> --status agendado` (ou `publicado`).
 - **Ajustes** (status `ajustar`, ou o pedido "Naper Studio · Ajustes ... siga o feedback da Galeria em estudio/trabalhos/<id>/feedback.json"):
   1. `node painel/registrar.mjs feedback <id>` lista os comentários pendentes (`[n] mm:ss texto`, ou `geral`, ou com o trecho do relatório).
   2. Para cada comentário de vídeo, ache o trecho pelo tempo: a receita (`kit-reedicao/receitas/<id>.json`) e o `estudio/trabalhos/<id>/progresso.json` dizem qual trecho está naquele ponto (some as durações dos trechos). Relatório ou imagem: ajuste o texto ou refaça a peça.
