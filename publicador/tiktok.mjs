@@ -46,6 +46,7 @@ const T = {
   editCover: /Edit cover|Editar capa/i, uploadCover: /Upload cover|Enviar capa|Carregar capa/i,
   showMore: rx('Show more', 'Mostrar mais'), disclose: /Disclose post content|Divulgar conte[uú]do/i, branded: /Branded content|Conte[uú]do de marca/i,
   checking: /Checking in progress|Verificação em andamento|Verificando/i, checkLite: /Content check lite|Verifica[cç][aã]o de conte[uú]do/i,
+  limiteChecagem: /reached your check limit|limite de verifica/i,
   quemVe: /Who can see this post|Quem pode ver/i, quando: /When to post|Quando postar/i,
 };
 
@@ -248,6 +249,7 @@ try {
     if (await cancel.isVisible().catch(() => false)) { await cancel.click(); await esperar(1000); }
     while (Date.now() < limite) {
       st = (await page.getByText(T.checkLite).first().locator('xpath=ancestor::div[2]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+      if (T.limiteChecagem.test(await page.locator('body').innerText().catch(() => ''))) return 'LIMITE: ' + st.slice(0, 200);
       if (!T.checking.test(st)) break;
       await esperar(15000);
     }
@@ -256,6 +258,11 @@ try {
   let concluido = false;
   for (let tentativa = 1; tentativa <= 3 && !concluido; tentativa++) {
     r.checagem = await esperarChecagem(14);
+    // O TikTok limita as checagens de conteúdo por dia ("You've reached your check limit for today"): sem a checagem, não posta.
+    if (r.checagem.startsWith('LIMITE')) {
+      await descartar(page); await esperar(1500);
+      await parar(8, { ok: false, parou: 'limite diário de checagens do TikTok atingido ("Try again tomorrow"): o rascunho foi descartado e nada foi postado. Tente de novo mais tarde.' });
+    }
     if (T.checking.test(r.checagem)) continue;
     await botao.click();
     for (let i = 0; i < 20; i++) {
