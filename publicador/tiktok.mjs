@@ -97,8 +97,20 @@ try {
   }
   log('conta @' + quem);
 
-  // 1) Upload.
-  await page.locator('input[type=file]').first().setInputFiles(c.arquivo);
+  // 1) Upload. A página às vezes carrega pela metade (em branco): recarrega e tenta de novo, até 3 vezes.
+  for (let t = 1; ; t++) {
+    try {
+      // Rascunho não salvo de uma tentativa anterior ("A video you were editing wasn't saved"): o upload trava até descartar.
+      if (await page.getByText(/wasn.t saved|não foi salvo/i).first().isVisible().catch(() => false)) { await descartar(page); await esperar(2500); log('rascunho anterior descartado'); }
+      await page.locator('input[type=file]').first().waitFor({ state: 'attached', timeout: 45000 });
+      await page.locator('input[type=file]').first().setInputFiles(c.arquivo, { timeout: 45000 });
+      break;
+    } catch (e) {
+      if (t >= 3) throw e;
+      log('a página de upload não respondeu; recarregando (tentativa ' + (t + 1) + ' de 3)');
+      await page.goto('https://www.tiktok.com/tiktokstudio/upload?lang=en', { waitUntil: 'domcontentloaded' }).catch(() => {}); await esperar(8000);
+    }
+  }
   let subiu = false;
   for (let i = 0; i < 150; i++) { await esperar(2000); if (T.uploaded.test(await page.locator('body').innerText().catch(() => ''))) { subiu = true; break; } }
   if (!subiu) await parar(4, { ok: false, parou: 'o upload do vídeo não terminou em 5 minutos. Nada foi postado.' });
@@ -257,8 +269,26 @@ try {
 
   // 8) Só vale como postado quando aparece na lista.
   await esperar(7000);
-  const corpo = await page.locator('body').innerText().catch(() => '');
-  r.naLista = corpo.includes(c.legenda.slice(0, 25));
+  let corpo = await page.locator('body').innerText().catch(() => '');
+  r.naLista = corpo.includes(c.legenda.slice(0, 40));
+  // A lista vem ordenada pela data (os agendados mais distantes em cima) e a busca dela demora a incluir um post novo:
+  // procura pela busca da própria lista, com palavras inteiras; se não achar, espera, recarrega e procura de novo.
+  const palavras = c.legenda.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter((w) => w.length > 2);
+  const buscas = [palavras.slice(0, 4).join(' '), palavras.slice(3, 7).join(' ')].filter(Boolean); // a busca às vezes falha com acento
+  for (let rodada = 1; rodada <= 3 && !r.naLista; rodada++) {
+    if (rodada > 1) { await esperar(45000); await page.goto('https://www.tiktok.com/tiktokstudio/content?lang=en', { waitUntil: 'domcontentloaded' }).catch(() => {}); await esperar(7000); }
+    const busca = page.getByPlaceholder(/Search for post description|Pesquisar/i).first();
+    if (!(await busca.isVisible().catch(() => false))) continue;
+    for (const q of buscas) {
+      if (r.naLista) break;
+      await busca.click(); await page.keyboard.press('Control+A'); await page.keyboard.press('Backspace');
+      await busca.type(q, { delay: 20 }); await page.keyboard.press('Enter'); await esperar(5000);
+      corpo = await page.locator('body').innerText().catch(() => '');
+      // Trecho longo: um post antigo com o mesmo começo de legenda não pode contar como este.
+      r.naLista = corpo.includes(c.legenda.slice(0, 40));
+      r.conferidoPelaBusca = q + ' (rodada ' + rodada + ')';
+    }
+  }
   r.ondeConferir = 'https://www.tiktok.com/tiktokstudio/content';
   r.foto = await foto('lista-posts.png');
   await parar(r.naLista ? 0 : 8, { ok: r.naLista, resultado: r.naLista ? (agendar ? 'agendado: apareceu na lista de posts' : 'postado: apareceu na lista de posts') : 'voltou para a lista mas ainda não vi o post nela; confira em ' + r.ondeConferir });
