@@ -104,7 +104,9 @@ try {
       // Rascunho não salvo de uma tentativa anterior ("A video you were editing wasn't saved"): o upload trava até descartar.
       if (await page.getByText(/wasn.t saved|não foi salvo/i).first().isVisible().catch(() => false)) { await descartar(page); await esperar(2500); log('rascunho anterior descartado'); }
       await page.locator('input[type=file]').first().waitFor({ state: 'attached', timeout: 45000 });
-      await page.locator('input[type=file]').first().setInputFiles(c.arquivo, { timeout: 45000 });
+      // 240 s (21/11/2026): numa máquina de 2 processadores o envio de um vídeo de ~30 MB passou de 45 s e falhou 5 vezes seguidas;
+      // com folga passou em 3 a 5 min no total. 3 tentativas × 240 s ainda cabem no prazo do operário (25 min).
+      await page.locator('input[type=file]').first().setInputFiles(c.arquivo, { timeout: 240000 });
       break;
     } catch (e) {
       if (t >= 3) throw e;
