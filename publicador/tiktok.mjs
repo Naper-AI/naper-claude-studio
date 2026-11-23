@@ -123,10 +123,20 @@ try {
   await page.getByText(T.addLink).first().scrollIntoViewIfNeeded().catch(() => {});
   await page.locator('button').filter({ hasText: T.add }).first().click();
   await esperar(2000);
-  await page.locator('[role=dialog]').last().getByText(T.select).click();
-  await esperar(900);
-  await page.getByText(T.products).last().click();
-  await esperar(700);
+  // O tipo do link: em umas contas a janela vem com "Select" (abre a lista e escolhe "Products"); em outras já vem com
+  // "Products" escolhido (23/11/2026: a conta da Ana — "Add link · Link type · Products · Cancel · Next" — e o clique no
+  // "Select" que não existia derrubava todo post). Já escolhido, segue direto para o "Next".
+  const janelaDoLink = page.locator('[role=dialog]').last();
+  const jaEmProdutos = await janelaDoLink.getByText(T.products).first().isVisible().catch(() => false);
+  const comSelect = await janelaDoLink.getByText(T.select).first().isVisible().catch(() => false);
+  if (comSelect || !jaEmProdutos) {
+    await janelaDoLink.getByText(T.select).click();
+    await esperar(900);
+    await page.getByText(T.products).last().click();
+    await esperar(700);
+  } else {
+    log('tipo do link já em "Products"');
+  }
   await page.locator('[role=dialog]').last().getByRole('button', { name: T.next }).click();
   await esperar(4000);
   const dlg = page.locator('[role=dialog]').last();
