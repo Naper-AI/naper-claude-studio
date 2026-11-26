@@ -239,7 +239,16 @@ try {
         await esperar(900);
       }
     }
-    await page.getByText(/^\d{2}:\d{2}$/).first().click(); await esperar(1200);
+    /* naper-remendo-hora */ const campoHora = page.getByText(/^\d{2}:\d{2}$/).first();
+    /* naper-remendo-hora */ const controleHora = campoHora.locator('xpath=ancestor-or-self::*[self::button or @role="combobox" or @role="button" or contains(@class,"elect")][1]');
+    /* naper-remendo-hora */ const listaAbriu = async () => (await page.getByRole('option', { name: 'Hours ' + alvo.hh }).count()) > 0;
+    /* naper-remendo-hora */ await ((await controleHora.count()) ? controleHora.first() : campoHora).click().catch(() => {}); await esperar(1300);
+    /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.click().catch(() => {}); await esperar(1300); }
+    /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.locator('xpath=following::*[name()="svg" or contains(@class,"arrow") or contains(@class,"icon")][1]').click().catch(() => {}); await esperar(1300); }
+    /* naper-remendo-hora */ if (!(await listaAbriu())) {
+    /* naper-remendo-hora */   r.foto = await foto('lista-de-horas-nao-abriu.png');
+    /* naper-remendo-hora */   await parar(6, { ok: false, parou: 'a lista de horas do TikTok não abriu (o campo do horário mudou nesta conta). Nada foi postado.' });
+    /* naper-remendo-hora */ }
     const h = page.getByRole('option', { name: 'Hours ' + alvo.hh }); await h.scrollIntoViewIfNeeded(); await h.click(); await esperar(600);
     const m = page.getByRole('option', { name: 'Minutes ' + alvo.mm }); await m.scrollIntoViewIfNeeded(); await m.click(); await esperar(900);
     await page.getByText(T.quemVe).first().click().catch(() => {}); await esperar(700);
@@ -262,6 +271,7 @@ try {
     while (Date.now() < limite) {
       st = (await page.getByText(T.checkLite).first().locator('xpath=ancestor::div[2]').innerText().catch(() => '')).replace(/\s+/g, ' ');
       if (T.limiteChecagem.test(await page.locator('body').innerText().catch(() => ''))) return 'LIMITE: ' + st.slice(0, 200);
+      /* naper-remendo-retry */ if (/Something went wrong|Algo deu errado/i.test(st)) { log('a checagem do TikTok falhou ("Something went wrong"): clicando em Retry'); await page.getByText(/^\s*(Retry|Tentar novamente)\s*$/i).first().click().catch(() => {}); await esperar(10000); continue; }
       if (!T.checking.test(st)) break;
       await esperar(15000);
     }
@@ -276,9 +286,16 @@ try {
       await parar(8, { ok: false, parou: 'limite diário de checagens do TikTok atingido ("Try again tomorrow"): o rascunho foi descartado e nada foi postado. Tente de novo mais tarde.' });
     }
     if (T.checking.test(r.checagem)) continue;
+    const __tetoAgendados = { v: false };
+    page.on('response', async (r) => { try { if (/\/project\/post\/v1\//.test(r.url()) && (await r.json())?.status_code === 3013021) __tetoAgendados.v = true; } catch {} });
     await botao.click();
     for (let i = 0; i < 20; i++) {
       await esperar(1500);
+      if (__tetoAgendados.v || /only schedule up to|Exceeding the scheduled/i.test(await page.evaluate(() => document.body.innerText).catch(() => ''))) {
+        log('o TikTok recusou o agendamento: limite de posts agendados (50) atingido; descartando o rascunho');
+        await descartar(page); await esperar(1500);
+        await parar(9, { ok: false, parou: 'limite de posts agendados do TikTok atingido ("You can only schedule up to 30 posts"): o rascunho foi descartado e nada foi agendado.' });
+      }
       if (/tiktokstudio\/content/.test(page.url())) { concluido = true; break; }
       const dtxt = await page.locator('[role=dialog]').last().innerText().catch(() => '');
       if (/Continue to post|Continuar/i.test(dtxt)) { log('o TikTok perguntou "Continue to post?": o clique não valeu; esperando a checagem'); break; }
