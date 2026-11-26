@@ -200,8 +200,39 @@ try {
   if (capa) {
     await page.getByText(T.editCover).first().click(); await esperar(3500);
     const cap = page.locator('[role=dialog]').last();
-    const [fc] = await Promise.all([page.waitForEvent('filechooser', { timeout: 15000 }), cap.getByText(T.uploadCover).first().click()]);
-    await fc.setFiles(capa); await esperar(4500);
+    /*
+     * A CAPA VAI DIRETO NO `input[type=file]` (26/11/2026). Até aqui este passo esperava o evento `filechooser` com 15 s
+     * de teto e falhava com `page.waitForEvent: Timeout 15000ms exceeded while waiting for event "filechooser"` — cinco
+     * vezes em 48 h numa conta só. E a falha derruba o POST INTEIRO, porque a capa vem antes de publicar: o vídeo já
+     * subiu, a legenda e o produto já estão lá, e nada é postado. O envio do VÍDEO (passo 1, acima) já escreve no input
+     * e nunca teve esse problema; `setInputFiles` funciona em input escondido, então a janela do sistema é dispensável.
+     *
+     * ⚠️ O input é procurado SÓ DENTRO do diálogo da capa, nunca na página: o input do vídeo continua montado, e um
+     * `page.locator('input[type=file]').first()` mandaria a imagem da capa para o campo do vídeo.
+     *
+     * A espera pelo `filechooser` fica como ÚLTIMO recurso: se o diálogo não tiver input (a tela do TikTok muda sem
+     * avisar), o caminho de antes ainda vale.
+     */
+    const inputDaCapa = async () => {
+      const e = cap.locator('input[type=file]').first();
+      return (await e.count().catch(() => 0)) > 0 ? e : null;
+    };
+    let entrada = await inputDaCapa();
+    if (!entrada) {
+      // Em algumas versões da tela o input só nasce depois do toque em "Enviar capa".
+      await cap.getByText(T.uploadCover).first().click().catch(() => {});
+      await esperar(1500);
+      entrada = await inputDaCapa();
+    }
+    if (entrada) {
+      await entrada.setInputFiles(capa, { timeout: 60000 });
+      log('capa: arquivo escrito no input');
+    } else {
+      const [fc] = await Promise.all([page.waitForEvent('filechooser', { timeout: 15000 }), cap.getByText(T.uploadCover).first().click()]);
+      await fc.setFiles(capa);
+      log('capa: pela janela de arquivo (caminho antigo; o diálogo não tinha input)');
+    }
+    await esperar(4500);
     await cap.getByRole('button', { name: T.save }).click(); await esperar(2500);
     r.capa = path.basename(capa) + (capaGerada ? ' (quadro do meio do vídeo)' : '');
   }
