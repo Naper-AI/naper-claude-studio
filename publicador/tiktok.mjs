@@ -150,16 +150,43 @@ try {
   await esperar(4000);
   const dlg = page.locator('[role=dialog]').last();
   const busca = dlg.locator('input[type=text], input:not([type])').first();
-  await busca.fill(c.produtoId); await busca.press('Enter').catch(() => {}); await esperar(3500);
+  await busca.fill(c.produtoId); await busca.press('Enter').catch(() => {});
+  /*
+   * ESPERA A LINHA, NÃO O RELÓGIO (26/11/2026). Era `esperar(3500)` fixo: a busca do Studio que demorasse mais do que
+   * isso saía como "produto indisponível", e o post inteiro morria com o vídeo já enviado.
+   */
   const linha = dlg.locator('tr, [class*=row]').filter({ hasText: c.produtoId }).first();
+  await linha.waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
   const textoLinha = (await linha.innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
   r.produtoNoSeletor = textoLinha || 'NÃO ENCONTRADO';
-  const estoque = Number((textoLinha.match(/R\$ [\d.,]+\s+(\d[\d.]*)\s/) || [])[1]?.replace(/\./g, '') || 0);
-  if (!textoLinha || !/Active|Ativo/i.test(textoLinha) || !(estoque > 0)) {
+  /*
+   * TRÊS CAUSAS, TRÊS MOTIVOS (26/11/2026). Até aqui "não encontrei na busca", "está inativo" e "o estoque que eu li
+   * deu zero" saíam com a MESMA frase — "produto indisponível (não encontrado, inativo ou sem estoque)" —, e o agente
+   * contava à criadora que a oferta tinha saído do ar. Em 26/11 foram 9 das 24 falhas de 48 h (contas 3, 12 e 174) e os
+   * quatro produtos estavam `em_estoque = true` nos nossos retratos do mesmo dia: não era oferta fora do ar.
+   *
+   * ⚠️ E O ESTOQUE NÃO BARRA MAIS O POST QUANDO NÃO FOI LIDO. O número vem de um regex preso ao formato da linha
+   * (`R$ <preço>` seguido do número); mudança de coluna, preço em faixa ou moeda diferente fazia `estoque = 0` e
+   * barrava produto bom. Agora: lido e zero = sem estoque de verdade; NÃO lido = segue, porque a própria linha diz
+   * "Active", que é o sinal de disponibilidade do TikTok, e fica registrado no log.
+   */
+  const pararPeloProduto = async (motivo) => {
     await dlg.getByRole('button', { name: T.cancel }).click().catch(() => {}); await esperar(1000);
     await descartar(page);
-    await parar(5, { ok: false, parou: 'produto indisponível (não encontrado, inativo ou sem estoque): nada foi postado' });
+    await parar(5, { ok: false, parou: motivo + ': nada foi postado' });
+  };
+  if (!textoLinha) {
+    await pararPeloProduto(`não achei o produto ${c.produtoId} na busca do Studio (a lista não trouxe a linha dele em 15 s)`);
   }
+  const lido = (textoLinha.match(/R\$ [\d.,]+\s+(\d[\d.]*)\s/) || [])[1];
+  const estoque = lido === undefined ? null : Number(lido.replace(/\./g, ''));
+  if (!/Active|Ativo/i.test(textoLinha)) {
+    await pararPeloProduto(`o produto ${c.produtoId} não está ativo no Studio (a linha diz "${textoLinha.slice(0, 110)}")`);
+  }
+  if (estoque === 0) {
+    await pararPeloProduto(`o produto ${c.produtoId} está sem estoque no Studio (a linha diz "${textoLinha.slice(0, 110)}")`);
+  }
+  if (estoque === null) log(`estoque não lido na linha do produto; sigo porque ela diz Active: "${textoLinha.slice(0, 110)}"`);
   const marca = linha.locator('input[type=radio], input[type=checkbox], [role=radio], [role=checkbox], label').first();
   if (await marca.count()) await marca.click({ force: true }); else await linha.click();
   await esperar(700);
