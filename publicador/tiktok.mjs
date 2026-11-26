@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { args, porta as qualPorta, conectar, esperar, usernameTikTok } from './comum.mjs';
+import { args, porta as qualPorta, conectar, esperar, sessaoDoTikTok } from './comum.mjs';
 
 const { flags, resto } = args();
 const r = { etapas: [] };
@@ -90,8 +90,17 @@ try {
   // 0) Conta: confere antes de tudo.
   await page.goto('https://www.tiktok.com/tiktokstudio/upload?lang=en', { waitUntil: 'domcontentloaded' });
   await esperar(6000);
-  const quem = await usernameTikTok(page);
+  const sessao = await sessaoDoTikTok(page);
+  const quem = sessao.username;
   r.conta = quem ? '@' + quem : null;
+  /*
+   * SONDA CAÍDA NÃO É LOGOUT (26/11/2026). Até aqui qualquer falha da leitura da conta saía como "sem login", e o
+   * agente contava à criadora que "a permissão caiu" — com a permissão boa. São dois estados diferentes e agora o
+   * texto diz qual é: só o `respondeu: true` sem ninguém logado é falta de login.
+   */
+  if (!quem && !sessao.respondeu) {
+    await parar(3, { ok: false, parou: 'não consegui conferir a conta do TikTok: a página não respondeu depois de 3 tentativas. Nada foi postado.' });
+  }
   if (!quem) await parar(3, { ok: false, parou: 'sem login: o TikTok não está logado neste Chrome. Rode "node publicador/chrome.mjs --login tiktok", entre na conta e tente de novo. Nada foi postado.' });
   if (c.contaEsperada && c.contaEsperada.replace(/^@/, '').toLowerCase() !== quem.toLowerCase()) {
     await parar(3, { ok: false, parou: `conta errada: logada @${quem}, esperada ${c.contaEsperada}. Nada foi postado.` });

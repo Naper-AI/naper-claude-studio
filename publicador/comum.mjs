@@ -63,11 +63,35 @@ export async function conectar(p) {
 
 export const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * QUEM ESTA LOGADO, E SE A SONDA RESPONDEU (26/11/2026). Devolve `{ username, respondeu }`.
+ *
+ * Antes isto era um fetch so, e TODO tropeco virava `null`: rede instavel, 429 do TikTok, pagina de erro em HTML (o
+ * `.json()` estoura), resposta lenta. O chamador leu `null` como "nao esta logado" e a criadora ouviu "a permissao
+ * caiu" com a permissao boa (visto em producao em 26/11, contas 12 e 62). Entao:
+ *
+ *  - tenta 3 vezes, com 1,5 s entre elas: um tropeco nao e um logout;
+ *  - separa "a sonda respondeu e nao ha ninguem logado" (`respondeu: true`) de "a sonda nao respondeu"
+ *    (`respondeu: false`), para quem chama nao poder confundir as duas.
+ */
+export async function sessaoDoTikTok(page) {
+  for (let t = 1; t <= 3; t++) {
+    const r = await page.evaluate(async () => {
+      try {
+        const res = await fetch('/passport/web/account/info/', { credentials: 'include' });
+        const j = await res.json();
+        return { respondeu: true, username: j?.data?.username || null };
+      } catch { return { respondeu: false, username: null }; }
+    }).catch(() => ({ respondeu: false, username: null }));
+    if (r.username) return r;
+    // Respondeu dizendo que nao ha ninguem logado: isso e resposta, nao falha — nao insiste.
+    if (r.respondeu) return r;
+    if (t < 3) await esperar(1500);
+  }
+  return { respondeu: false, username: null };
+}
+
+/** O nome de quem esta logado, ou `null`. Mantido para quem so quer o nome (`conta.mjs`). */
 export async function usernameTikTok(page) {
-  return page.evaluate(async () => {
-    try {
-      const j = await (await fetch('/passport/web/account/info/', { credentials: 'include' })).json();
-      return j?.data?.username || null;
-    } catch { return null; }
-  }).catch(() => null);
+  return (await sessaoDoTikTok(page)).username;
 }
