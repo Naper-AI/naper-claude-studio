@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { args, porta as qualPorta, conectar, esperar, usernameTikTok } from './comum.mjs';
+import { agendarPorCampos, dataIso, ehDataIso, ehHora, valoresDosCampos } from './agenda-campos.mjs';
 
 const { flags, resto } = args();
 const r = { etapas: [] };
@@ -223,37 +224,53 @@ try {
   if (agendar) {
     await page.getByText(T.schedule).first().click(); await esperar(1800); await fecharAvisos(page);
     const alvoTxt = `${MESES[alvo.mes - 1]} ${alvo.dia}, ${alvo.ano}`;
-    const campoData = page.getByText(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/).first();
-    if (await campoData.count()) {
-      const atual = (await campoData.innerText()).trim();
-      if (atual !== alvoTxt) {
-        await campoData.click(); await esperar(1000);
-        for (let i = 0; i < 14; i++) {
-          const cab = (await page.locator('[class*=calendar], [role=dialog], [role=grid]').allInnerTexts().catch(() => [])).join(' ').toLowerCase();
-          if (cab.includes(MESES_LONGO[alvo.mes - 1]) && cab.includes(String(alvo.ano))) break;
-          const prox = page.locator('[class*=arrow-right], [class*=next], [aria-label*=ext]').last();
-          if (!(await prox.count())) break;
-          await prox.click().catch(() => {}); await esperar(500);
+    // naper-remendo-campos (26/11/2026): a variante NOVA do TikTok Studio usa CAMPOS de formulário ("2026-11-26", "19:35") e um
+    // seletor de hora de duas colunas sem nome acessível (ver agenda-campos.mjs). A antiga (texto "Nov 26, 2026" e opções "Hours 21")
+    // segue no else, como era. Quem decide é a própria tela: há campo HH:MM na seção "When to post"?
+    const secaoQuando = page.getByText(rx('When to post', 'Quando postar')).first().locator('xpath=ancestor::div[2]');
+    if ((await valoresDosCampos(secaoQuando)).some(ehHora)) {
+      const a = await agendarPorCampos(page, secaoQuando, alvo, { esperar });
+      if (!a.ok) { r.foto = await foto('agendamento-campos.png'); await parar(6, { ok: false, parou: a.motivo }); }
+      await page.getByText(T.quemVe).first().click().catch(() => {}); await esperar(700);
+      // O que ficou nos campos DEPOIS de fechar o seletor é o que vale (o texto da seção não traz o valor dos campos).
+      const valores = await valoresDosCampos(secaoQuando);
+      const dataNoCampo = valores.find(ehDataIso) ?? '';
+      const horaNoCampo = valores.find(ehHora) ?? '';
+      r.agendamento = `${dataNoCampo} ${horaNoCampo}`.trim();
+      r.agendamentoConfere = dataNoCampo === dataIso(alvo) && horaNoCampo === `${alvo.hh}:${alvo.mm}`;
+    } else {
+      const campoData = page.getByText(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/).first();
+      if (await campoData.count()) {
+        const atual = (await campoData.innerText()).trim();
+        if (atual !== alvoTxt) {
+          await campoData.click(); await esperar(1000);
+          for (let i = 0; i < 14; i++) {
+            const cab = (await page.locator('[class*=calendar], [role=dialog], [role=grid]').allInnerTexts().catch(() => [])).join(' ').toLowerCase();
+            if (cab.includes(MESES_LONGO[alvo.mes - 1]) && cab.includes(String(alvo.ano))) break;
+            const prox = page.locator('[class*=arrow-right], [class*=next], [aria-label*=ext]').last();
+            if (!(await prox.count())) break;
+            await prox.click().catch(() => {}); await esperar(500);
+          }
+          await page.locator('[class*=calendar] [class*=day], [role=gridcell]').filter({ hasText: new RegExp('^' + alvo.dia + '$') }).first().click().catch(() => {});
+          await esperar(900);
         }
-        await page.locator('[class*=calendar] [class*=day], [role=gridcell]').filter({ hasText: new RegExp('^' + alvo.dia + '$') }).first().click().catch(() => {});
-        await esperar(900);
       }
+      /* naper-remendo-hora */ const campoHora = page.getByText(/^\d{2}:\d{2}$/).first();
+      /* naper-remendo-hora */ const controleHora = campoHora.locator('xpath=ancestor-or-self::*[self::button or @role="combobox" or @role="button" or contains(@class,"elect")][1]');
+      /* naper-remendo-hora */ const listaAbriu = async () => (await page.getByRole('option', { name: 'Hours ' + alvo.hh }).count()) > 0;
+      /* naper-remendo-hora */ await ((await controleHora.count()) ? controleHora.first() : campoHora).click().catch(() => {}); await esperar(1300);
+      /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.click().catch(() => {}); await esperar(1300); }
+      /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.locator('xpath=following::*[name()="svg" or contains(@class,"arrow") or contains(@class,"icon")][1]').click().catch(() => {}); await esperar(1300); }
+      /* naper-remendo-hora */ if (!(await listaAbriu())) {
+      /* naper-remendo-hora */   r.foto = await foto('lista-de-horas-nao-abriu.png');
+      /* naper-remendo-hora */   await parar(6, { ok: false, parou: 'a lista de horas do TikTok não abriu (o campo do horário mudou nesta conta). Nada foi postado.' });
+      /* naper-remendo-hora */ }
+      const h = page.getByRole('option', { name: 'Hours ' + alvo.hh }); await h.scrollIntoViewIfNeeded(); await h.click(); await esperar(600);
+      const m = page.getByRole('option', { name: 'Minutes ' + alvo.mm }); await m.scrollIntoViewIfNeeded(); await m.click(); await esperar(900);
+      await page.getByText(T.quemVe).first().click().catch(() => {}); await esperar(700);
+      r.agendamento = (await page.getByText(T.quando).first().locator('xpath=ancestor::div[3]').innerText().catch(() => '')).replace(/\s+/g, ' ').replace(/When to post Now Schedule /i, '').trim();
+      r.agendamentoConfere = r.agendamento.includes(alvoTxt) && r.agendamento.includes(`${alvo.hh}:${alvo.mm}`);
     }
-    /* naper-remendo-hora */ const campoHora = page.getByText(/^\d{2}:\d{2}$/).first();
-    /* naper-remendo-hora */ const controleHora = campoHora.locator('xpath=ancestor-or-self::*[self::button or @role="combobox" or @role="button" or contains(@class,"elect")][1]');
-    /* naper-remendo-hora */ const listaAbriu = async () => (await page.getByRole('option', { name: 'Hours ' + alvo.hh }).count()) > 0;
-    /* naper-remendo-hora */ await ((await controleHora.count()) ? controleHora.first() : campoHora).click().catch(() => {}); await esperar(1300);
-    /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.click().catch(() => {}); await esperar(1300); }
-    /* naper-remendo-hora */ if (!(await listaAbriu())) { await campoHora.locator('xpath=following::*[name()="svg" or contains(@class,"arrow") or contains(@class,"icon")][1]').click().catch(() => {}); await esperar(1300); }
-    /* naper-remendo-hora */ if (!(await listaAbriu())) {
-    /* naper-remendo-hora */   r.foto = await foto('lista-de-horas-nao-abriu.png');
-    /* naper-remendo-hora */   await parar(6, { ok: false, parou: 'a lista de horas do TikTok não abriu (o campo do horário mudou nesta conta). Nada foi postado.' });
-    /* naper-remendo-hora */ }
-    const h = page.getByRole('option', { name: 'Hours ' + alvo.hh }); await h.scrollIntoViewIfNeeded(); await h.click(); await esperar(600);
-    const m = page.getByRole('option', { name: 'Minutes ' + alvo.mm }); await m.scrollIntoViewIfNeeded(); await m.click(); await esperar(900);
-    await page.getByText(T.quemVe).first().click().catch(() => {}); await esperar(700);
-    r.agendamento = (await page.getByText(T.quando).first().locator('xpath=ancestor::div[3]').innerText().catch(() => '')).replace(/\s+/g, ' ').replace(/When to post Now Schedule /i, '').trim();
-    r.agendamentoConfere = r.agendamento.includes(alvoTxt) && r.agendamento.includes(`${alvo.hh}:${alvo.mm}`);
     if (!r.agendamentoConfere) { r.foto = await foto('agendamento-errado.png'); await parar(6, { ok: false, parou: `o agendamento no TikTok ("${r.agendamento}") não bate com o pedido (${c.quando}). Nada foi postado.` }); }
   } else r.agendamento = 'agora';
   r.quemVe = await page.getByText(T.quemVe).first().locator('xpath=following::*[1]').innerText().catch(() => '?');
