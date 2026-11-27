@@ -97,6 +97,9 @@ try {
   if (c.contaEsperada && c.contaEsperada.replace(/^@/, '').toLowerCase() !== quem.toLowerCase()) {
     await parar(3, { ok: false, parou: `conta errada: logada @${quem}, esperada ${c.contaEsperada}. Nada foi postado.` });
   }
+  // As marcas "etapa: …" (27/11/2026): o operário põe a hora em cada linha do stderr, e o tempo entre duas marcas é a
+  // duração da etapa — é assim que se mede onde vão os minutos de um post. Só registram: nada muda no que o post faz.
+  log('etapa: conta conferida');
   log('conta @' + quem);
 
   // 1) Upload. A página às vezes carrega pela metade (em branco): recarrega e tenta de novo, até 3 vezes.
@@ -194,6 +197,7 @@ try {
   r.entidades = ((await ed.innerHTML()).match(/class="mention"/g) || []).length;
   r.entidadesEsperadas = (marcaNome ? 1 : 0) + hashtags.length;
   if (r.entidades < r.entidadesEsperadas) log(`ATENÇÃO: só ${r.entidades} de ${r.entidadesEsperadas} menções/hashtags viraram entidades`);
+  log('etapa: legenda escrita');
 
   // 4) Capa: a da criadora, ou um quadro do meio do vídeo (ffmpeg).
   let capa = c.capa; let capaGerada = false;
@@ -206,6 +210,7 @@ try {
     await cap.getByRole('button', { name: T.save }).click(); await esperar(2500);
     r.capa = path.basename(capa) + (capaGerada ? ' (quadro do meio do vídeo)' : '');
   }
+  log('etapa: capa');
 
   // 5) Conteúdo de marca.
   const mais = page.getByText(T.showMore).first();
@@ -219,6 +224,7 @@ try {
     await bc.locator('xpath=preceding::input[@type="checkbox"][1]').click({ force: true }); await esperar(1200);
     r.conteudoDeMarca = await bc.locator('xpath=ancestor::*[.//input[@type="checkbox"]][1]//input[@type="checkbox"]').first().isChecked().catch(() => null);
   }
+  log('etapa: opções');
 
   // 6) Quando.
   if (agendar) {
@@ -277,6 +283,7 @@ try {
   const botao = page.locator('button').filter({ hasText: agendar ? T.schedule : T.post }).first();
   r.botao = await botao.innerText().catch(() => '?');
   r.foto = await foto('conferencia.png');
+  log('etapa: horário e conferência');
 
   if (c.seco) await parar(0, { ok: true, seco: true, resultado: 'modo seco: tudo montado; parei antes de clicar em "' + r.botao + '". O rascunho foi fechado sem postar.' });
 
@@ -297,6 +304,7 @@ try {
   let concluido = false;
   for (let tentativa = 1; tentativa <= 3 && !concluido; tentativa++) {
     r.checagem = await esperarChecagem(14);
+    log('etapa: checagem do TikTok terminou');
     // O TikTok limita as checagens de conteúdo por dia ("You've reached your check limit for today"): sem a checagem, não posta.
     if (r.checagem.startsWith('LIMITE')) {
       await descartar(page); await esperar(1500);
@@ -319,6 +327,7 @@ try {
     }
   }
   if (!concluido) await parar(7, { ok: false, parou: 'não consegui confirmar: a checagem não terminou ou o TikTok não levou à lista de posts. Confira em https://www.tiktok.com/tiktokstudio/content antes de tentar de novo (não duplique o post).', foto: await foto('nao-confirmado.png') });
+  log('etapa: tela de posts');
 
   // 8) Só vale como postado quando aparece na lista.
   await esperar(7000);
@@ -342,6 +351,7 @@ try {
       r.conferidoPelaBusca = q + ' (rodada ' + rodada + ')';
     }
   }
+  log(r.naLista ? 'etapa: conferido na lista' : 'etapa: não apareceu na lista');
   r.ondeConferir = 'https://www.tiktok.com/tiktokstudio/content';
   r.foto = await foto('lista-posts.png');
   await parar(r.naLista ? 0 : 8, { ok: r.naLista, resultado: r.naLista ? (agendar ? 'agendado: apareceu na lista de posts' : 'postado: apareceu na lista de posts') : 'voltou para a lista mas ainda não vi o post nela; confira em ' + r.ondeConferir });
